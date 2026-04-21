@@ -1275,9 +1275,10 @@ async function carregarAgenda(year, month) {
     return;
   }
   try {
-    const d1 = formatDateISO(year, month, 1);
-    const d2 = formatDateISO(year, month + 1, 0);
-    const url = `${CONFIG.scriptUrl}?action=getAgenda&timeMin=${d1}T00:00:00&timeMax=${d2}T23:59:59`;
+    const d1      = formatDateISO(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0).getDate();
+    const d2      = formatDateISO(year, month, lastDay);
+    const url = `${CONFIG.scriptUrl}?action=getAgenda&timeMin=${d1}T00:00:00-03:00&timeMax=${d2}T23:59:59-03:00`;
     const resp = await fetch(url);
     const data = await resp.json();
     if (data.status === 'ok') {
@@ -1289,6 +1290,7 @@ async function carregarAgenda(year, month) {
     }
   } catch(e) {
     console.warn('Erro ao carregar agenda:', e);
+    showToast('⚠️ Erro ao carregar agenda: ' + e.message);
   }
 }
 

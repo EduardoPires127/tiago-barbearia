@@ -31,6 +31,14 @@ const CONFIG = {
 };
 
 // ================================================================
+//  HELPER — retorna o calendário configurado ou o padrão da conta
+// ================================================================
+function getCalendar() {
+  const cal = CalendarApp.getCalendarById(CONFIG.calendarioId);
+  return cal || CalendarApp.getDefaultCalendar();
+}
+
+// ================================================================
 //  ROTAS GET
 // ================================================================
 
@@ -107,7 +115,7 @@ function doPost(e) {
 
 function getEvents(timeMin, timeMax) {
   try {
-    const cal    = CalendarApp.getCalendarById(CONFIG.calendarioId);
+    const cal    = getCalendar();
     const events = cal.getEvents(new Date(timeMin), new Date(timeMax));
     const result = events.map(ev => {
       const startMs = ev.getStartTime().getTime();
@@ -130,7 +138,7 @@ function getEvents(timeMin, timeMax) {
 
 function createEvent(p) {
   try {
-    const cal = CalendarApp.getCalendarById(CONFIG.calendarioId);
+    const cal = getCalendar();
 
     const [year, month, day] = p.date.split('-').map(Number);
     const [hour, min]        = p.time.split(':').map(Number);
@@ -186,7 +194,7 @@ function lembreteAutomatico() {
   const buscaIni = new Date(em2h.getTime() - margem);
   const buscaFim = new Date(em2h.getTime() + margem);
 
-  const cal    = CalendarApp.getCalendarById(CONFIG.calendarioId);
+  const cal    = getCalendar();
   const events = cal.getEvents(buscaIni, buscaFim);
 
   events.forEach(ev => {
@@ -301,7 +309,7 @@ function cancelarViaLink(token) {
 function buscarEventoPorToken(token) {
   const now = new Date();
   const max = new Date(now.getTime() + 60 * 24 * 60 * 60 * 1000);
-  const cal    = CalendarApp.getCalendarById(CONFIG.calendarioId);
+  const cal    = getCalendar();
   const events = cal.getEvents(now, max);
   for (const ev of events) {
     if (ev.getDescription().includes(`TOKEN: ${token}`)) return ev;
@@ -436,7 +444,7 @@ function buscarPorTelefone(tel) {
     const telLimpo = tel.replace(/\D/g, '');
     const now      = new Date();
     const max      = new Date(now.getTime() + 60 * 24 * 60 * 60 * 1000);
-    const cal      = CalendarApp.getCalendarById(CONFIG.calendarioId);
+    const cal      = getCalendar();
     const events   = cal.getEvents(now, max);
     const result   = [];
 
@@ -499,7 +507,7 @@ function cancelarJson(token) {
 // getAgenda — retorna todos eventos de um período
 function getAgenda(timeMin, timeMax) {
   try {
-    const cal    = CalendarApp.getCalendarById(CONFIG.calendarioId);
+    const cal    = getCalendar();
     const events = cal.getEvents(new Date(timeMin), new Date(timeMax));
     const result = events.map(ev => {
       const desc  = ev.getDescription() || '';
