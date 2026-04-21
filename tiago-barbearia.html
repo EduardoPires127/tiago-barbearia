@@ -9,7 +9,7 @@
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 :root {
-  --bg:       #F2F2F2;
+  --bg:       #0F0E0A;
   --surface:  #FFFFFF;
   --card:     #FFFFFF;
   --border:   #E0E0E0;
@@ -72,6 +72,7 @@ body {
   flex-direction: column;
   gap: 4px;
   scroll-behavior: smooth;
+  background: #F5F5F5;
 }
 .chat::-webkit-scrollbar { width: 4px; }
 .chat::-webkit-scrollbar-track { background: transparent; }
@@ -281,7 +282,7 @@ body {
   }
 }
 @media (max-width: 599px) {
-  .chat-container { height: 100%; display: flex; flex-direction: column; }
+  .chat-container { height: 100%; display: flex; flex-direction: column; background: #fff; }
 }
 </style>
 </head>
