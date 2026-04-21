@@ -1,0 +1,871 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Tiago Barbearia – Agendamento</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✂️</text></svg>">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg:       #0F0E0A;
+  --surface:  #1A1812;
+  --card:     #221F17;
+  --border:   #302C22;
+  --amber:    #D4913A;
+  --amber-h:  #E8A34A;
+  --cream:    #EDE5D2;
+  --muted:    #7A7060;
+  --user-bg:  #2A2218;
+  --user-bd:  rgba(212,145,58,.35);
+}
+html, body { height: 100%; overflow: hidden; }
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  color: var(--cream);
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Header ─────────────────────────────────────────────── */
+.header {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 12px 18px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+  z-index: 10;
+}
+.header-avatar {
+  width: 40px; height: 40px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px; flex-shrink: 0;
+}
+.header-info { flex: 1; }
+.header-name { font-size: 15px; font-weight: 500; }
+.header-status { font-size: 12px; color: var(--muted); margin-top: 1px; }
+.header-wpp {
+  width: 36px; height: 36px;
+  background: rgba(37,211,102,.12);
+  border: 1px solid rgba(37,211,102,.2);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  text-decoration: none; flex-shrink: 0;
+  transition: background .2s;
+}
+.header-wpp:hover { background: rgba(37,211,102,.22); }
+.header-wpp svg { width: 18px; height: 18px; }
+
+/* ── Chat ────────────────────────────────────────────────── */
+.chat {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px 14px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  scroll-behavior: smooth;
+}
+.chat::-webkit-scrollbar { width: 4px; }
+.chat::-webkit-scrollbar-track { background: transparent; }
+.chat::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+/* ── Bubbles ─────────────────────────────────────────────── */
+.row { display: flex; margin: 2px 0; }
+.row.bot  { justify-content: flex-start; }
+.row.user { justify-content: flex-end; }
+
+.bubble {
+  max-width: 78%;
+  padding: 10px 14px;
+  border-radius: 18px;
+  font-size: 14px;
+  line-height: 1.55;
+  animation: pop .2s ease both;
+}
+.row.bot  .bubble {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-bottom-left-radius: 6px;
+  color: var(--cream);
+}
+.row.user .bubble {
+  background: var(--user-bg);
+  border: 1px solid var(--user-bd);
+  border-bottom-right-radius: 6px;
+  color: var(--cream);
+  text-align: right;
+}
+.bubble strong { color: var(--amber); }
+
+/* ── Typing indicator ────────────────────────────────────── */
+.dots { display: inline-flex; gap: 4px; align-items: center; padding: 2px 0; }
+.dots span {
+  width: 7px; height: 7px;
+  background: var(--muted);
+  border-radius: 50%;
+  animation: bounce 1.2s infinite;
+}
+.dots span:nth-child(2) { animation-delay: .2s; }
+.dots span:nth-child(3) { animation-delay: .4s; }
+
+/* ── Options row (chips below bot bubble) ─────────────────── */
+.options-wrap { display: flex; flex-wrap: wrap; gap: 8px; margin: 6px 0 8px 2px; animation: pop .25s ease both; }
+.chip {
+  background: var(--card);
+  border: 1.5px solid var(--border);
+  border-radius: 20px;
+  padding: 8px 14px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  color: var(--cream);
+  cursor: pointer;
+  transition: all .18s;
+  user-select: none;
+}
+.chip:hover   { border-color: var(--amber); color: var(--amber); }
+.chip.active  { background: rgba(212,145,58,.12); border-color: var(--amber); color: var(--amber); }
+.chip.confirm { background: var(--amber); border-color: var(--amber); color: #111; font-weight: 500; }
+.chip.confirm:hover { background: var(--amber-h); }
+.chip.danger  { border-color: rgba(180,60,60,.5); color: #e07070; }
+.chip.danger:hover  { border-color: #e07070; }
+
+/* ── Date scroll ─────────────────────────────────────────── */
+.date-scroll-wrap { width: 100%; overflow-x: auto; padding: 6px 0 10px; margin: 2px 0 4px; }
+.date-scroll-wrap::-webkit-scrollbar { display: none; }
+.date-scroll { display: flex; gap: 8px; width: max-content; }
+.date-chip {
+  background: var(--card);
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  padding: 8px 14px;
+  text-align: center;
+  cursor: pointer;
+  transition: all .18s;
+  min-width: 64px;
+  font-size: 12px;
+  color: var(--muted);
+  animation: pop .2s ease both;
+}
+.date-chip .day-name { font-size: 11px; font-weight: 500; letter-spacing: .06em; text-transform: uppercase; }
+.date-chip .day-num  { font-size: 18px; font-weight: 500; color: var(--cream); margin: 2px 0; }
+.date-chip .day-month{ font-size: 11px; }
+.date-chip:hover   { border-color: var(--amber); }
+.date-chip.active  { background: rgba(212,145,58,.12); border-color: var(--amber); color: var(--amber); }
+.date-chip.active .day-num { color: var(--amber); }
+
+/* ── Time grid ───────────────────────────────────────────── */
+.time-grid { display: flex; flex-wrap: wrap; gap: 7px; margin: 6px 0 8px; animation: pop .2s ease both; }
+.time-chip {
+  background: var(--card);
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 13px;
+  font-family: 'DM Sans', sans-serif;
+  color: var(--cream);
+  cursor: pointer;
+  transition: all .15s;
+  min-width: 64px;
+  text-align: center;
+}
+.time-chip:hover  { border-color: var(--amber); color: var(--amber); }
+.time-chip.taken  { color: var(--border); border-color: var(--border); background: var(--bg); cursor: not-allowed; text-decoration: line-through; }
+
+/* ── Resumo card ─────────────────────────────────────────── */
+.summary-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 16px;
+  margin: 4px 0 6px;
+  font-size: 13px;
+  line-height: 1.9;
+  color: var(--cream);
+  animation: pop .2s ease both;
+  max-width: 78%;
+}
+.summary-card .row-s { display: flex; gap: 8px; }
+.summary-card .lbl { color: var(--muted); min-width: 76px; }
+.summary-card .val { color: var(--cream); font-weight: 500; }
+.summary-card .divider { height: 1px; background: var(--border); margin: 10px 0; }
+.summary-card .total-row { display: flex; justify-content: space-between; }
+.summary-card .total-lbl { color: var(--muted); font-size: 12px; }
+.summary-card .total-val { color: var(--amber); font-weight: 500; }
+
+/* ── Sucesso card ────────────────────────────────────────── */
+.sucesso-card {
+  background: rgba(58,158,106,.08);
+  border: 1px solid rgba(58,158,106,.3);
+  border-radius: 14px;
+  padding: 18px 16px;
+  margin: 4px 0;
+  animation: pop .3s ease both;
+  max-width: 85%;
+}
+.sucesso-icon { font-size: 32px; margin-bottom: 8px; }
+.sucesso-title { font-size: 15px; font-weight: 500; color: #6fcf97; margin-bottom: 6px; }
+.sucesso-body  { font-size: 13px; color: var(--cream); line-height: 1.7; }
+.sucesso-nota  { margin-top: 10px; font-size: 12px; color: var(--muted); line-height: 1.6; }
+
+/* ── Input area ──────────────────────────────────────────── */
+.input-area {
+  flex-shrink: 0;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  padding: 10px 14px;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+.input-area input {
+  flex: 1;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  padding: 11px 16px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 15px;
+  color: var(--cream);
+  outline: none;
+  transition: border-color .2s;
+}
+.input-area input:focus { border-color: rgba(212,145,58,.45); }
+.input-area input::placeholder { color: var(--muted); }
+.input-area .send-btn {
+  width: 42px; height: 42px; flex-shrink: 0;
+  background: var(--amber);
+  border: none; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  transition: background .2s, transform .1s;
+}
+.input-area .send-btn:hover  { background: var(--amber-h); }
+.input-area .send-btn:active { transform: scale(.94); }
+.input-area .send-btn svg { width: 18px; height: 18px; }
+.input-area.hidden { display: none; }
+
+/* ── Data do sistema ─────────────────────────────────────── */
+.date-label {
+  text-align: center;
+  font-size: 11px;
+  letter-spacing: .08em;
+  color: var(--muted);
+  margin: 6px 0 10px;
+  text-transform: uppercase;
+}
+
+@keyframes pop  { from { opacity:0; transform:scale(.92) translateY(6px); } to { opacity:1; transform:none; } }
+@keyframes bounce { 0%,80%,100% { transform:scale(.7); opacity:.4; } 40% { transform:scale(1); opacity:1; } }
+
+@media (min-width: 600px) {
+  body { align-items: center; justify-content: center; }
+  .chat-container {
+    width: 100%;
+    max-width: 500px;
+    height: 90vh;
+    max-height: 800px;
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 20px 60px rgba(0,0,0,.5);
+  }
+}
+@media (max-width: 599px) {
+  .chat-container { height: 100%; display: flex; flex-direction: column; }
+}
+</style>
+</head>
+<body>
+
+<div class="chat-container">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="header-avatar">✂️</div>
+    <div class="header-info">
+      <div class="header-name">Tiago Barbearia</div>
+      <div class="header-status">Agendamento online</div>
+    </div>
+    <a class="header-wpp" id="wppLink" href="#" target="_blank" rel="noopener" title="WhatsApp">
+      <svg viewBox="0 0 24 24" fill="#25D366"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+    </a>
+  </div>
+
+  <!-- Chat -->
+  <div class="chat" id="chat">
+    <div class="date-label" id="todayLabel"></div>
+  </div>
+
+  <!-- Input -->
+  <div class="input-area hidden" id="inputArea">
+    <input type="text" id="textInput" autocomplete="off" autocorrect="off">
+    <button class="send-btn" id="sendBtn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
+      </svg>
+    </button>
+  </div>
+
+</div>
+
+<script>
+// ============================================================
+//  CONFIGURAÇÃO
+// ============================================================
+const CONFIG = {
+  scriptUrl:    'COLE_AQUI_A_URL_DO_SEU_APPS_SCRIPT',
+  whatsapp:     '5500000000000', // DDI+DDD+número do Tiago
+  diasFechados: [0],             // 0 = domingo
+  periodosSemana: [{ inicio: 9, fim: 12 }, { inicio: 14, fim: 19 }], // Seg-Sex: pausa almoço 12h-14h
+  periodosSabado: [{ inicio: 9, fim: 19 }],                          // Sábado: dia corrido
+};
+
+const SERVICOS = [
+  { id: 'degradê',      nome: 'Corte Degradê',                    emoji: '✂️', duracao: 30, preco: 45 },
+  { id: 'social',       nome: 'Corte Social',                      emoji: '💈', duracao: 30, preco: 45 },
+  { id: 'tesoura',      nome: 'Corte Tesoura',                     emoji: '✂️', duracao: 30, preco: 45 },
+  { id: 'maquina',      nome: 'Corte Máquina',                     emoji: '⚡', duracao: 20, preco: 25 },
+  { id: 'barba',        nome: 'Barba',                             emoji: '🪒', duracao: 30, preco: 35 },
+  { id: 'sobrancelha',  nome: 'Sobrancelha',                       emoji: '✨', duracao: 10, preco: 15 },
+  { id: 'pezinho',      nome: 'Pezinho',                           emoji: '👟', duracao: 10, preco: 15 },
+  { id: 'combo_cb',     nome: 'Combo Cabelo e Barba',              emoji: '🔥', duracao: 60, preco: 70 },
+  { id: 'combo_cbs',    nome: 'Combo Cabelo, Barba e Sobrancelha', emoji: '💎', duracao: 60, preco: 75 },
+  { id: 'personalizado', nome: 'Personalizado',                    emoji: '💬', duracao: 0,  preco: 0, wpp: true },
+];
+
+// ── Estado ───────────────────────────────────────────────────
+const B = { nome:'', servicos:[], data:null, dataStr:'', horario:'', telefone:'', email:'', duracao:0, preco:0 };
+const chat      = document.getElementById('chat');
+const inputArea = document.getElementById('inputArea');
+const textInput = document.getElementById('textInput');
+const sendBtn   = document.getElementById('sendBtn');
+
+// ── Helpers ──────────────────────────────────────────────────
+function capitalizarNome(str) {
+  return str.trim().toLowerCase().replace(/\b\w/g, c => c.toUpperCase());
+}
+
+document.getElementById('wppLink').href = `https://wa.me/${CONFIG.whatsapp}`;
+document.getElementById('todayLabel').textContent = new Date().toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'long'});
+
+function scrollBottom() {
+  setTimeout(() => chat.scrollTo({ top: chat.scrollHeight, behavior: 'smooth' }), 30);
+}
+
+function typing(ms = 700) {
+  return new Promise(resolve => {
+    const row = document.createElement('div');
+    row.className = 'row bot';
+    row.innerHTML = '<div class="bubble"><span class="dots"><span></span><span></span><span></span></span></div>';
+    chat.appendChild(row);
+    scrollBottom();
+    setTimeout(() => { row.remove(); resolve(); }, ms);
+  });
+}
+
+async function bot(html, delay = 650) {
+  await typing(delay);
+  const row = document.createElement('div');
+  row.className = 'row bot';
+  const bub = document.createElement('div');
+  bub.className = 'bubble';
+  bub.innerHTML = html;
+  row.appendChild(bub);
+  chat.appendChild(row);
+  scrollBottom();
+  return row;
+}
+
+function user(text) {
+  const row = document.createElement('div');
+  row.className = 'row user';
+  row.innerHTML = `<div class="bubble">${text}</div>`;
+  chat.appendChild(row);
+  scrollBottom();
+}
+
+function showInput(type = 'text', placeholder = '', onSend) {
+  inputArea.classList.remove('hidden');
+  textInput.type = type;
+  textInput.placeholder = placeholder;
+  textInput.value = '';
+  setTimeout(() => textInput.focus(), 300);
+  const submit = () => {
+    const val = textInput.value.trim();
+    if (!val) return;
+    hideInput();
+    onSend(val);
+  };
+  sendBtn.onclick = submit;
+  textInput.onkeydown = e => { if (e.key === 'Enter') submit(); };
+}
+
+function hideInput() {
+  inputArea.classList.add('hidden');
+  textInput.value = '';
+  textInput.onkeydown = null;
+  sendBtn.onclick = null;
+}
+
+function addOptions(items, onSelect, opts = {}) {
+  const wrap = document.createElement('div');
+  wrap.className = 'options-wrap';
+  items.forEach(item => {
+    const btn = document.createElement('button');
+    btn.className = 'chip' + (item.cls ? ' ' + item.cls : '');
+    btn.textContent = item.label;
+    btn.onclick = () => {
+      if (item.wpp) {
+        wrap.remove();
+        onSelect([item]);
+        return;
+      }
+      if (opts.multi) {
+        btn.classList.toggle('active');
+      } else {
+        wrap.remove();
+        onSelect(item);
+      }
+    };
+    wrap.appendChild(btn);
+  });
+  if (opts.multi) {
+    const ok = document.createElement('button');
+    ok.className = 'chip confirm';
+    ok.textContent = 'Confirmar →';
+    ok.onclick = () => {
+      const active = [...wrap.querySelectorAll('.chip.active:not(.confirm)')];
+      if (active.length === 0) return;
+      wrap.remove();
+      onSelect(active.map(el => items.find(i => i.label === el.textContent)));
+    };
+    wrap.appendChild(ok);
+  }
+  chat.appendChild(wrap);
+  scrollBottom();
+}
+
+function addDateScroll(dates, onSelect) {
+  const wrapOuter = document.createElement('div');
+  wrapOuter.className = 'date-scroll-wrap';
+  const scroll = document.createElement('div');
+  scroll.className = 'date-scroll';
+  const DIAS = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+  const MESES = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  dates.forEach(date => {
+    const btn = document.createElement('div');
+    btn.className = 'date-chip';
+    const isToday = date.toDateString() === new Date().toDateString();
+    const isTomorrow = date.toDateString() === new Date(Date.now()+86400000).toDateString();
+    btn.innerHTML = `
+      <div class="day-name">${isToday ? 'Hoje' : isTomorrow ? 'Amanhã' : DIAS[date.getDay()]}</div>
+      <div class="day-num">${date.getDate()}</div>
+      <div class="day-month">${MESES[date.getMonth()]}</div>`;
+    btn.onclick = () => { wrapOuter.remove(); onSelect(date); };
+    scroll.appendChild(btn);
+  });
+  wrapOuter.appendChild(scroll);
+  chat.appendChild(wrapOuter);
+  scrollBottom();
+}
+
+function addTimeGrid(slots, ocupados, duracao, onSelect) {
+  const agora = new Date();
+  const grid  = document.createElement('div');
+  grid.className = 'time-grid';
+  let anyAvail = false;
+  slots.forEach(time => {
+    const [h,m]  = time.split(':').map(Number);
+    const slotDt = new Date(B.data.getFullYear(), B.data.getMonth(), B.data.getDate(), h, m);
+    const past   = slotDt <= agora;
+    const busy   = past || isOcupado(time, ocupados, duracao);
+    const btn    = document.createElement('div');
+    btn.className = 'time-chip' + (busy ? ' taken' : '');
+    btn.textContent = time;
+    if (!busy) { anyAvail = true; btn.onclick = () => { grid.remove(); onSelect(time); }; }
+    grid.appendChild(btn);
+  });
+  if (!anyAvail) {
+    grid.remove();
+    return false;
+  }
+  chat.appendChild(grid);
+  scrollBottom();
+  return true;
+}
+
+function isOcupado(slotTime, ocupados, duracao) {
+  const [sh,sm] = slotTime.split(':').map(Number);
+  const s = sh*60+sm, e = s+duracao;
+  for (const ev of ocupados) {
+    const [eh,em] = ev.time.split(':').map(Number);
+    const es = eh*60+em, ee = es+(ev.duration||30);
+    if (s < ee && e > es) return true;
+  }
+  return false;
+}
+
+function addSummaryCard() {
+  const sel = B.servicos.map(id => SERVICOS.find(s => s.id === id));
+  const nomes = sel.map(s => s.nome).join(' + ');
+  const card = document.createElement('div');
+  card.className = 'summary-card';
+  const dataFmt = B.data.toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'long'});
+  card.innerHTML = `
+    <div class="row-s"><span class="lbl">Serviço</span><span class="val">${nomes}</span></div>
+    <div class="row-s"><span class="lbl">Data</span><span class="val">${dataFmt}</span></div>
+    <div class="row-s"><span class="lbl">Horário</span><span class="val">${B.horario}</span></div>
+    <div class="row-s"><span class="lbl">WhatsApp</span><span class="val">${B.telefone}</span></div>
+    <div class="row-s"><span class="lbl">E-mail</span><span class="val">${B.email}</span></div>
+    <div class="divider"></div>
+    <div class="total-row"><span class="total-lbl">Total · ${B.duracao}min</span><span class="total-val">R$ ${B.preco.toFixed(2).replace('.',',')}</span></div>`;
+  chat.appendChild(card);
+  scrollBottom();
+}
+
+// ── Gerador de datas disponíveis ─────────────────────────────
+function proximasDatas(qtd = 14) {
+  const datas = [], hoje = new Date(); hoje.setHours(0,0,0,0);
+  let d = new Date(hoje);
+  while (datas.length < qtd) {
+    if (!CONFIG.diasFechados.includes(d.getDay())) datas.push(new Date(d));
+    d.setDate(d.getDate() + 1);
+  }
+  return datas;
+}
+
+function gerarSlots(date) {
+  const slots = [], periodos = date.getDay() === 6 ? CONFIG.periodosSabado : CONFIG.periodosSemana;
+  for (const p of periodos) {
+    let t = p.inicio;
+    while (t < p.fim) {
+      slots.push(`${String(Math.floor(t)).padStart(2,'0')}:${String(Math.round((t%1)*60)).padStart(2,'0')}`);
+      t += 0.5;
+    }
+  }
+  return slots;
+}
+
+async function fetchOcupados(date) {
+  if (!CONFIG.scriptUrl || CONFIG.scriptUrl.includes('COLE_AQUI')) return [];
+  try {
+    const d0 = `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
+    const d1 = new Date(date.getTime()+86400000);
+    const d1s = `${d1.getFullYear()}-${String(d1.getMonth()+1).padStart(2,'0')}-${String(d1.getDate()).padStart(2,'0')}`;
+    const res  = await fetch(`${CONFIG.scriptUrl}?action=getEvents&timeMin=${d0}T00:00:00&timeMax=${d1s}T00:00:00`);
+    const data = await res.json();
+    return data.status === 'ok' ? data.events : [];
+  } catch { return []; }
+}
+
+// ── Fluxo de conversa ─────────────────────────────────────────
+async function start() {
+  await bot('Olá! 👋 Seja bem-vindo à <strong>Tiago Barbearia</strong>!', 500);
+  await bot('Para começar, qual é o seu <strong>nome completo</strong>?', 700);
+  showInput('text', 'Nome completo...', val => {
+    B.nome = capitalizarNome(val);
+    user(B.nome);
+    askAcao();
+  });
+}
+
+async function askAcao() {
+  await bot(`Olá, <strong>${B.nome.split(' ')[0]}</strong>! O que você deseja fazer?`);
+  addOptions(
+    [
+      { label: '📅 Agendar horário' },
+      { label: '❌ Cancelar agendamento' },
+    ],
+    sel => {
+      user(sel.label);
+      if (sel.label.includes('Cancelar')) cancelarBuscar();
+      else askServico();
+    }
+  );
+}
+
+async function askServico() {
+  await bot('Que serviço você vai querer? 😊');
+  addOptions(
+    SERVICOS.map(s => ({ label: `${s.emoji} ${s.nome}`, id: s.id, wpp: !!s.wpp })),
+    async sel => {
+      if (sel.some(s => s.wpp)) {
+        user('💬 Personalizado');
+        await bot('Claro! Para serviços personalizados, vou te encaminhar direto para o WhatsApp do Tiago. 👇');
+        addOptions(
+          [{ label: '📲 Abrir WhatsApp', cls: 'confirm' }],
+          () => window.open(`https://wa.me/${CONFIG.whatsapp}?text=${encodeURIComponent('Olá Tiago! Quero agendar um serviço personalizado.')}`, '_blank')
+        );
+        return;
+      }
+      const comboSel = sel.find(s => s.id.startsWith('combo'));
+      const selFinal = comboSel ? [comboSel] : sel;
+      B.servicos = selFinal.map(s => s.id);
+      const sesSvc = selFinal.map(s => SERVICOS.find(sv => sv.id === s.id));
+      B.duracao = sesSvc.reduce((a,s) => a+s.duracao, 0);
+      B.preco   = sesSvc.reduce((a,s) => a+s.preco,   0);
+      user(sesSvc.map(s => s.nome).join(' + '));
+      askData();
+    },
+    { multi: true }
+  );
+}
+
+async function askData() {
+  const nomes = B.servicos.map(id => SERVICOS.find(s => s.id === id).nome).join(' + ');
+  await bot(`Ótimo! <strong>${nomes}</strong> 👌<br>Qual dia você prefere?`);
+  addDateScroll(proximasDatas(14), date => {
+    B.data    = date;
+    B.dataStr = `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
+    user(date.toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'long'}));
+    askHorario();
+  });
+}
+
+async function askHorario() {
+  await bot('Buscando os horários disponíveis…', 900);
+  const ocupados = await fetchOcupados(B.data);
+  const slots    = gerarSlots(B.data);
+  await bot('Escolha o <strong>horário</strong>:', 300);
+  const ok = addTimeGrid(slots, ocupados, B.duracao, time => {
+    B.horario = time;
+    user(time);
+    askTelefone();
+  });
+  if (!ok) {
+    await bot('Não há horários disponíveis neste dia. Escolha outro:');
+    addDateScroll(proximasDatas(14).filter(d => d.toDateString() !== B.data.toDateString()), date => {
+      B.data    = date;
+      B.dataStr = `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
+      user(date.toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'long'}));
+      askHorario();
+    });
+  }
+}
+
+async function askTelefone() {
+  await bot('Me passa seu <strong>WhatsApp</strong>:');
+  showInput('tel', '(00) 00000-0000', val => {
+    B.telefone = val;
+    user(val);
+    askEmail();
+  });
+}
+
+async function askEmail() {
+  await bot('E seu <strong>e-mail</strong> para receber a confirmação e o lembrete:');
+  showInput('email', 'seu@email.com', val => {
+    B.email = val;
+    user(val);
+    confirmar();
+  });
+}
+
+async function confirmar() {
+  await bot('Perfeito! Confira o resumo:');
+  addSummaryCard();
+  await typing(400);
+  addOptions(
+    [
+      { label: '✅ Confirmar', cls: 'confirm' },
+      { label: '✏️ Recomeçar', cls: 'danger'  },
+    ],
+    sel => {
+      user(sel.label);
+      if (sel.label.includes('Confirmar')) submit();
+      else resetar();
+    }
+  );
+}
+
+async function submit() {
+  await bot('Aguarde um momento… ⏳', 500);
+  try {
+    const sesSvc = B.servicos.map(id => SERVICOS.find(s => s.id === id));
+    const params = new URLSearchParams({
+      action:   'createEvent',
+      nome:     B.nome,
+      tel:      B.telefone,
+      email:    B.email,
+      date:     B.dataStr,
+      time:     B.horario,
+      duration: B.duracao,
+      servicos: sesSvc.map(s => s.nome).join(', '),
+      valor:    `R$ ${B.preco.toFixed(2).replace('.',',')}`,
+    });
+    if (!CONFIG.scriptUrl || CONFIG.scriptUrl.includes('COLE_AQUI')) {
+      throw new Error('⚙️ scriptUrl não configurado');
+    }
+    const res  = await fetch(`${CONFIG.scriptUrl}?${params}`);
+    const data = await res.json();
+    if (data.status !== 'ok') throw new Error(data.message || 'Erro desconhecido');
+    await sucesso();
+  } catch (err) {
+    const isConfig = err.message.includes('scriptUrl');
+    await bot(isConfig
+      ? `⚙️ <strong>Modo demonstração</strong> — scriptUrl não configurado ainda.`
+      : `😕 Não foi possível confirmar: <em>${err.message}</em><br>Tente novamente ou fale pelo WhatsApp.`
+    , 300);
+    if (!isConfig) {
+      addOptions([{ label: '🔄 Tentar novamente', cls: 'confirm' }], () => {
+        user('Tentar novamente'); submit();
+      });
+    }
+  }
+}
+
+async function sucesso() {
+  await typing(600);
+  const dataFmt = B.data.toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'long'});
+  const sesSvc  = B.servicos.map(id => SERVICOS.find(s => s.id === id));
+  const nomes   = sesSvc.map(s => s.nome).join(' + ');
+
+  const card = document.createElement('div');
+  card.className = 'row bot';
+  card.innerHTML = `
+    <div class="sucesso-card">
+      <div class="sucesso-icon">✅</div>
+      <div class="sucesso-title">Agendamento confirmado!</div>
+      <div class="sucesso-body">
+        Te esperamos <strong>${dataFmt}</strong> às <strong>${B.horario}</strong>. 💈
+      </div>
+      <div class="sucesso-nota">
+        📧 Confirmação enviada para <strong>${B.email}</strong>.<br>
+        🔔 Você receberá um <strong>lembrete 2 horas antes</strong> por e-mail.
+      </div>
+    </div>`;
+  chat.appendChild(card);
+  scrollBottom();
+
+  await bot('Ótimo! Agora é só falar com o Tiago no WhatsApp para ele confirmar também. 👇', 900);
+
+  // Monta mensagem pré-preenchida
+  const msg = encodeURIComponent(
+    `Olá Tiago! Acabei de agendar pelo chat 😊\n\n` +
+    `👤 *${B.nome}*\n` +
+    `✂️ ${nomes}\n` +
+    `📅 ${dataFmt}\n` +
+    `⏰ ${B.horario}\n` +
+    `💰 R$ ${B.preco.toFixed(2).replace('.',',')}`
+  );
+  const wppUrl = `https://wa.me/${CONFIG.whatsapp}?text=${msg}`;
+
+  await typing(400);
+  addOptions(
+    [
+      { label: '📲 Enviar mensagem pro Tiago', cls: 'confirm', url: wppUrl },
+      { label: '📅 Novo agendamento' },
+    ],
+    sel => {
+      user(sel.label);
+      if (sel.url) window.open(sel.url, '_blank');
+      else resetar();
+    }
+  );
+}
+
+// ── Cancelamento pelo chat ────────────────────────────────────
+async function cancelarBuscar() {
+  await bot('Para localizar seu agendamento, informe o <strong>WhatsApp</strong> que você usou:');
+  showInput('tel', '(00) 00000-0000', async tel => {
+    user(tel);
+    await bot('Buscando…', 800);
+    if (!CONFIG.scriptUrl || CONFIG.scriptUrl.includes('COLE_AQUI')) {
+      await bot('⚙️ Modo demonstração — busca não disponível.');
+      return;
+    }
+    try {
+      const res  = await fetch(`${CONFIG.scriptUrl}?action=buscarPorTelefone&tel=${encodeURIComponent(tel)}`);
+      const data = await res.json();
+      if (data.status !== 'ok' || !data.agendamentos.length) {
+        await bot('Não encontrei agendamentos para esse número. 🔍');
+        addOptions(
+          [
+            { label: '🔄 Tentar outro número', cls: 'confirm' },
+            { label: '📅 Fazer agendamento' },
+          ],
+          sel => { user(sel.label); sel.label.includes('Tentar') ? cancelarBuscar() : askServico(); }
+        );
+        return;
+      }
+      await bot(data.agendamentos.length > 1 ? 'Encontrei esses agendamentos:' : 'Encontrei esse agendamento:', 300);
+      cancelarMostrar(data.agendamentos);
+    } catch(e) {
+      await bot('Erro ao buscar. Tente novamente ou fale pelo WhatsApp.', 300);
+    }
+  });
+}
+
+async function cancelarMostrar(agendamentos) {
+  agendamentos.forEach(ag => {
+    const card = document.createElement('div');
+    card.className = 'summary-card';
+    card.innerHTML = `
+      <div class="row-s"><span class="lbl">Serviço</span><span class="val">${ag.servicos}</span></div>
+      <div class="row-s"><span class="lbl">Data</span><span class="val">${ag.data}</span></div>
+      <div class="row-s"><span class="lbl">Horário</span><span class="val">${ag.horario}</span></div>`;
+    chat.appendChild(card);
+  });
+  scrollBottom();
+
+  if (agendamentos.length === 1) {
+    await typing(400);
+    await bot('Deseja cancelar esse agendamento?', 300);
+    addOptions(
+      [
+        { label: '✅ Sim, cancelar', cls: 'danger' },
+        { label: '↩ Voltar' },
+      ],
+      sel => {
+        user(sel.label);
+        if (sel.label.includes('cancelar')) cancelarExecutar(agendamentos[0]);
+        else askAcao();
+      }
+    );
+  } else {
+    await bot('Qual deles deseja cancelar?', 400);
+    addOptions(
+      agendamentos.map(ag => ({ label: `${ag.servicos} — ${ag.data} às ${ag.horario}`, _ag: ag })),
+      sel => { user(sel.label); cancelarExecutar(sel._ag); }
+    );
+  }
+}
+
+async function cancelarExecutar(ag) {
+  await bot('Cancelando…', 700);
+  try {
+    const res  = await fetch(`${CONFIG.scriptUrl}?action=cancelarJson&token=${ag.token}`);
+    const data = await res.json();
+    if (data.status === 'not_found') { await bot('Esse agendamento não foi encontrado ou já foi cancelado.', 300); return; }
+    if (data.status !== 'ok') throw new Error(data.message);
+    await bot(`✅ <strong>Agendamento cancelado!</strong><br>${ag.servicos} às ${ag.horario} foi removido e o horário liberado.`, 300);
+    await typing(500);
+    addOptions(
+      [{ label: '📅 Fazer novo agendamento', cls: 'confirm' }],
+      () => { user('Novo agendamento'); resetar(); }
+    );
+  } catch(e) {
+    await bot('Erro ao cancelar. Entre em contato pelo WhatsApp.', 300);
+  }
+}
+
+function resetar() {
+  Object.assign(B, { nome:'', servicos:[], data:null, dataStr:'', horario:'', telefone:'', email:'', duracao:0, preco:0 });
+  start();
+}
+
+// ── Iniciar ───────────────────────────────────────────────────
+start();
+</script>
+</body>
+</html>

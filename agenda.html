@@ -1,0 +1,1903 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agenda — Tiago Barbearia</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Playfair+Display:wght@600&display=swap" rel="stylesheet">
+<style>
+/* ── Reset & Base ─────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:        #0F0E0A;
+  --surface:   #1A1812;
+  --card:      #221F17;
+  --border:    #302C22;
+  --amber:     #D4913A;
+  --amber-dim: rgba(212,145,58,.15);
+  --amber-sub: rgba(212,145,58,.08);
+  --text:      #F0E8D8;
+  --text-sub:  #BFB59E;
+  --text-muted:#7D7464;
+  --closed-bg: #141310;
+  --closed-txt:#3D3A33;
+  --radius:    12px;
+  --sheet-h:   80vh;
+  --sab: env(safe-area-inset-bottom, 0px);
+}
+
+html { height: 100%; }
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100%;
+  overscroll-behavior: none;
+}
+
+/* ── Scrollbar ────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--surface); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+/* ── Auth Screen ──────────────────────────────────────────── */
+#authScreen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 24px;
+}
+
+.auth-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 40px 32px;
+  width: 100%;
+  max-width: 380px;
+  text-align: center;
+}
+
+.auth-logo {
+  font-family: 'Playfair Display', serif;
+  font-size: 22px;
+  color: var(--amber);
+  margin-bottom: 6px;
+}
+
+.auth-subtitle {
+  font-size: 12px;
+  color: var(--text-muted);
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  margin-bottom: 32px;
+}
+
+.auth-divider {
+  width: 40px;
+  height: 1px;
+  background: var(--amber);
+  margin: 0 auto 32px;
+  opacity: .4;
+}
+
+.auth-label {
+  display: block;
+  text-align: left;
+  font-size: 12px;
+  color: var(--text-muted);
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.auth-input {
+  width: 100%;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 15px;
+  padding: 13px 16px;
+  outline: none;
+  transition: border-color .2s;
+  margin-bottom: 20px;
+}
+
+.auth-input:focus { border-color: var(--amber); }
+
+.auth-btn {
+  width: 100%;
+  background: var(--amber);
+  color: #0F0E0A;
+  border: none;
+  border-radius: 10px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  padding: 14px;
+  cursor: pointer;
+  transition: opacity .2s, transform .1s;
+}
+.auth-btn:hover { opacity: .88; }
+.auth-btn:active { transform: scale(.98); }
+
+.auth-error {
+  color: #E05555;
+  font-size: 13px;
+  margin-top: 12px;
+  min-height: 20px;
+}
+
+/* ── App ──────────────────────────────────────────────────── */
+#app { display: none; min-height: 100vh; flex-direction: column; }
+#app.visible { display: flex; }
+
+/* ── Header ───────────────────────────────────────────────── */
+.app-header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 14px 20px;
+}
+
+.header-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 17px;
+  color: var(--amber);
+  white-space: nowrap;
+}
+
+.btn-sair {
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text-muted);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  padding: 7px 14px;
+  cursor: pointer;
+  transition: border-color .2s, color .2s;
+  white-space: nowrap;
+}
+.btn-sair:hover { border-color: #E05555; color: #E05555; }
+
+/* ── Tabs ─────────────────────────────────────────────────── */
+.tabs {
+  display: flex;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 0 20px;
+  gap: 4px;
+}
+
+.tab-btn {
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--text-muted);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  padding: 13px 16px 11px;
+  cursor: pointer;
+  transition: color .2s, border-color .2s;
+  white-space: nowrap;
+}
+.tab-btn.active {
+  color: var(--amber);
+  border-bottom-color: var(--amber);
+}
+.tab-btn:hover:not(.active) { color: var(--text-sub); }
+
+/* ── Tab Content ─────────────────────────────────────────── */
+.tab-content { display: none; flex: 1; min-height: 0; }
+.tab-content.active { display: block; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+
+/* ══════════════════════════════════════════════════════════
+   TAB AGENDA
+══════════════════════════════════════════════════════════ */
+#tabAgenda { padding-bottom: 32px; }
+
+/* Cabeçalho mês */
+.month-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 20px 12px;
+}
+
+.month-nav-btn {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text-sub);
+  font-size: 18px;
+  width: 38px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: border-color .2s, color .2s;
+  flex-shrink: 0;
+}
+.month-nav-btn:hover { border-color: var(--amber); color: var(--amber); }
+
+.month-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 20px;
+  color: var(--text);
+  text-align: center;
+  flex: 1;
+}
+
+/* Grid calendário */
+.cal-grid-wrap { padding: 0 12px; }
+
+.cal-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  margin-bottom: 6px;
+}
+
+.cal-weekday {
+  text-align: center;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-muted);
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  padding: 6px 0;
+}
+
+.cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+
+.cal-day {
+  aspect-ratio: 1;
+  border-radius: 10px;
+  border: 1.5px solid transparent;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 6px 2px 4px;
+  cursor: pointer;
+  transition: background .18s, border-color .18s;
+  min-width: 0;
+  position: relative;
+  user-select: none;
+}
+
+/* Dias de outros meses */
+.cal-day.other-month {
+  opacity: .3;
+  pointer-events: none;
+}
+
+/* Dia fechado (padrão) */
+.cal-day.closed-day {
+  background: var(--closed-bg);
+  cursor: default;
+}
+.cal-day.closed-day .day-num { color: var(--closed-txt); }
+
+/* Dia fechado por exceção */
+.cal-day.exc-closed {
+  background: var(--closed-bg);
+  cursor: pointer;
+}
+.cal-day.exc-closed .day-num { color: var(--closed-txt); }
+
+/* Dia hoje */
+.cal-day.today {
+  border-color: var(--amber);
+}
+
+/* Dia selecionado */
+.cal-day.selected {
+  background: var(--amber-dim);
+  border-color: var(--amber);
+}
+
+/* Hover */
+.cal-day:not(.closed-day):not(.other-month):hover {
+  background: var(--amber-sub);
+}
+
+.day-num {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-sub);
+  line-height: 1;
+}
+
+.cal-day.today .day-num { color: var(--amber); font-weight: 600; }
+
+/* Pontos de agendamento */
+.day-dots {
+  display: flex;
+  gap: 2px;
+  margin-top: 4px;
+  flex-wrap: wrap;
+  justify-content: center;
+  max-width: 100%;
+}
+
+.day-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--amber);
+  flex-shrink: 0;
+}
+
+.day-more {
+  font-size: 9px;
+  color: var(--amber);
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.day-lock {
+  font-size: 10px;
+  margin-top: 3px;
+}
+
+/* ── Bottom Sheet / Painel ───────────────────────────────── */
+.sheet-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.55);
+  z-index: 100;
+  backdrop-filter: blur(2px);
+}
+.sheet-overlay.open { display: block; }
+
+.day-panel {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  border-radius: 20px 20px 0 0;
+  z-index: 101;
+  transform: translateY(100%);
+  transition: transform .32s cubic-bezier(.32,1,.25,1);
+  max-height: var(--sheet-h);
+  display: flex;
+  flex-direction: column;
+  padding-bottom: var(--sab);
+}
+
+.day-panel.open {
+  transform: translateY(0);
+}
+
+.panel-handle {
+  width: 36px;
+  height: 4px;
+  background: var(--border);
+  border-radius: 2px;
+  margin: 12px auto 0;
+  flex-shrink: 0;
+  touch-action: none;
+}
+
+.panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 20px 10px;
+  flex-shrink: 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.panel-date {
+  font-family: 'Playfair Display', serif;
+  font-size: 16px;
+  color: var(--text);
+}
+
+.panel-close-btn {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text-muted);
+  font-size: 15px;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: border-color .2s;
+  flex-shrink: 0;
+}
+.panel-close-btn:hover { border-color: var(--amber); }
+
+.panel-body {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  flex: 1;
+  padding: 16px 20px 24px;
+  overscroll-behavior: contain;
+}
+
+/* Cartão de agendamento */
+.appt-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin-bottom: 10px;
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+}
+
+.appt-time-col {
+  text-align: center;
+  flex-shrink: 0;
+  min-width: 44px;
+}
+
+.appt-time {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--amber);
+  line-height: 1;
+}
+
+.appt-time-end {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 3px;
+}
+
+.appt-info { flex: 1; min-width: 0; }
+
+.appt-nome {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 3px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.appt-servico {
+  font-size: 12px;
+  color: var(--text-sub);
+  margin-bottom: 5px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.appt-valor {
+  font-size: 12px;
+  color: var(--amber);
+  font-weight: 500;
+}
+
+/* Estado vazio */
+.panel-empty {
+  text-align: center;
+  padding: 32px 16px;
+}
+
+.panel-empty-icon {
+  font-size: 32px;
+  margin-bottom: 10px;
+}
+
+.panel-empty-text {
+  font-size: 14px;
+  color: var(--text-muted);
+  margin-bottom: 20px;
+}
+
+/* Estado fechado */
+.panel-closed-info {
+  text-align: center;
+  padding: 24px 16px 16px;
+}
+
+.panel-closed-icon { font-size: 28px; margin-bottom: 8px; }
+
+.panel-closed-text {
+  font-size: 14px;
+  color: var(--text-muted);
+  margin-bottom: 18px;
+}
+
+/* Botões do painel */
+.btn-exc-open, .btn-exc-close {
+  width: 100%;
+  border-radius: 10px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  padding: 14px 20px;
+  min-height: 48px;
+  cursor: pointer;
+  transition: opacity .2s, transform .1s;
+  border: none;
+  margin-top: 4px;
+}
+.btn-exc-open:active, .btn-exc-close:active { transform: scale(.98); }
+
+.btn-exc-open {
+  background: rgba(58,158,106,.18);
+  border: 1px solid rgba(58,158,106,.35);
+  color: #4CC384;
+}
+.btn-exc-open:hover { background: rgba(58,158,106,.28); }
+
+.btn-exc-close {
+  background: rgba(184,64,64,.12);
+  border: 1px solid rgba(184,64,64,.3);
+  color: #E07070;
+  margin-top: 12px;
+}
+.btn-exc-close:hover { background: rgba(184,64,64,.2); }
+
+.btn-exc-motivo {
+  width: 100%;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  padding: 10px 12px;
+  margin-top: 10px;
+  outline: none;
+  transition: border-color .2s;
+}
+.btn-exc-motivo:focus { border-color: var(--amber); }
+
+/* ══════════════════════════════════════════════════════════
+   TAB HORÁRIOS
+══════════════════════════════════════════════════════════ */
+#tabHorarios {
+  padding: 20px 16px 100px;
+  max-width: 640px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.section-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 16px;
+  color: var(--amber);
+  margin-bottom: 14px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+
+/* Card de dia */
+.weekday-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  margin-bottom: 10px;
+  overflow: hidden;
+}
+
+.weekday-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  cursor: default;
+  min-height: 56px;
+}
+
+.weekday-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text);
+}
+
+.weekday-status {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+/* Toggle */
+.toggle {
+  position: relative;
+  width: 50px;
+  height: 28px;
+  flex-shrink: 0;
+}
+
+.toggle input { opacity: 0; width: 0; height: 0; }
+
+.toggle-slider {
+  position: absolute;
+  inset: 0;
+  background: var(--border);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: background .2s;
+}
+
+.toggle-slider::before {
+  content: '';
+  position: absolute;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--text-muted);
+  top: 3px;
+  left: 3px;
+  transition: transform .2s, background .2s;
+}
+
+.toggle input:checked + .toggle-slider { background: var(--amber-dim); border: 1px solid var(--amber); }
+.toggle input:checked + .toggle-slider::before { transform: translateX(22px); background: var(--amber); }
+
+/* Períodos */
+.weekday-periods {
+  padding: 0 16px 14px;
+  border-top: 1px solid var(--border);
+  display: none;
+}
+
+.weekday-periods.open { display: block; }
+
+.period-row {
+  display: grid;
+  grid-template-columns: 48px 1fr 16px 1fr;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.period-label {
+  font-size: 12px;
+  color: var(--text-muted);
+  text-align: right;
+}
+
+.period-input {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  padding: 10px 8px;
+  width: 100%;
+  min-height: 44px;
+  outline: none;
+  transition: border-color .2s;
+}
+.period-input:focus { border-color: var(--amber); }
+
+.period-sep {
+  color: var(--text-muted);
+  font-size: 13px;
+  text-align: center;
+}
+
+.btn-add-period, .btn-rem-period {
+  background: transparent;
+  border: 1px dashed var(--border);
+  border-radius: 8px;
+  color: var(--text-muted);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  padding: 10px 16px;
+  min-height: 44px;
+  cursor: pointer;
+  margin-top: 10px;
+  transition: border-color .2s, color .2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.btn-add-period:hover { border-color: var(--amber); color: var(--amber); }
+.btn-rem-period { border-style: solid; margin-left: 8px; }
+.btn-rem-period:hover { border-color: #E05555; color: #E05555; }
+
+/* Seção exceções */
+.exc-section { margin-top: 28px; }
+
+.exc-form {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  margin-bottom: 14px;
+}
+
+.exc-form-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  margin-bottom: 10px;
+}
+
+.exc-form-group { display: flex; flex-direction: column; gap: 5px; flex: 1; min-width: 120px; }
+
+.exc-form-label {
+  font-size: 11px;
+  color: var(--text-muted);
+  letter-spacing: .07em;
+  text-transform: uppercase;
+}
+
+.exc-form-input, .exc-form-select {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  padding: 9px 11px;
+  outline: none;
+  transition: border-color .2s;
+}
+.exc-form-input:focus, .exc-form-select:focus { border-color: var(--amber); }
+
+.exc-form-select option { background: var(--card); }
+
+.btn-add-exc {
+  background: var(--amber);
+  border: none;
+  border-radius: 8px;
+  color: #0F0E0A;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 9px 18px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: opacity .2s;
+  align-self: flex-end;
+}
+.btn-add-exc:hover { opacity: .85; }
+
+/* Lista de exceções */
+.exc-list { display: flex; flex-direction: column; gap: 8px; }
+
+.exc-item {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.exc-item-date {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  min-width: 90px;
+}
+
+.exc-item-motivo {
+  font-size: 12px;
+  color: var(--text-muted);
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.exc-badge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 9px;
+  border-radius: 20px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.exc-badge.aberto {
+  background: rgba(58,158,106,.18);
+  color: #4CC384;
+  border: 1px solid rgba(58,158,106,.3);
+}
+
+.exc-badge.fechado {
+  background: rgba(184,64,64,.12);
+  color: #E07070;
+  border: 1px solid rgba(184,64,64,.28);
+}
+
+.btn-rem-exc {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 16px;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 6px;
+  transition: color .2s, background .2s;
+  flex-shrink: 0;
+  line-height: 1;
+}
+.btn-rem-exc:hover { color: #E05555; background: rgba(224,85,85,.12); }
+
+/* Botão salvar fixo */
+.save-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 14px 16px calc(14px + var(--sab));
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  z-index: 60;
+  display: none;
+}
+
+.save-bar.visible { display: block; }
+
+.btn-salvar {
+  width: 100%;
+  background: var(--amber);
+  border: none;
+  border-radius: 12px;
+  color: #0F0E0A;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  padding: 15px;
+  cursor: pointer;
+  transition: opacity .2s, transform .1s;
+  max-width: 640px;
+  display: block;
+  margin: 0 auto;
+}
+.btn-salvar:hover { opacity: .88; }
+.btn-salvar:active { transform: scale(.99); }
+
+/* Feedback toast */
+.toast {
+  position: fixed;
+  bottom: 80px;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  color: var(--text);
+  font-size: 14px;
+  padding: 12px 22px;
+  white-space: nowrap;
+  z-index: 200;
+  opacity: 0;
+  transition: opacity .25s, transform .25s;
+  pointer-events: none;
+}
+
+.toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* ── Desktop: painel lateral ─────────────────────────────── */
+@media (min-width: 768px) {
+  #tabAgenda.active {
+    display: grid;
+    grid-template-columns: 1fr 360px;
+    gap: 0;
+    align-items: start;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0;
+  }
+
+  .agenda-left {
+    padding: 20px 16px 40px;
+  }
+
+  /* Painel lateral em vez de bottom sheet */
+  .sheet-overlay { display: none !important; }
+
+  .day-panel {
+    position: sticky;
+    top: 0;
+    transform: none !important;
+    border-top: none;
+    border-radius: 0;
+    border-left: 1px solid var(--border);
+    height: calc(100vh - 112px);
+    max-height: none;
+  }
+
+  .panel-handle { display: none; }
+
+  .day-panel.open { transform: none; }
+
+  .panel-placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: var(--text-muted);
+    font-size: 14px;
+    gap: 10px;
+  }
+
+  .panel-placeholder-icon { font-size: 36px; opacity: .4; }
+
+  .save-bar { max-width: unset; }
+}
+
+/* Loading spinner */
+.loading-dots {
+  display: flex;
+  gap: 5px;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+}
+.loading-dots span {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: var(--amber);
+  animation: bounce 1.1s ease-in-out infinite;
+}
+.loading-dots span:nth-child(2) { animation-delay: .18s; }
+.loading-dots span:nth-child(3) { animation-delay: .36s; }
+@keyframes bounce {
+  0%, 80%, 100% { transform: scale(.6); opacity: .4; }
+  40%           { transform: scale(1);  opacity: 1; }
+}
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════
+     TELA DE LOGIN
+══════════════════════════════════════════════════ -->
+<div id="authScreen">
+  <div class="auth-card">
+    <div class="auth-logo">✂️ Tiago Barbearia</div>
+    <div class="auth-divider"></div>
+    <div class="auth-subtitle">Área do Barbeiro</div>
+
+    <label class="auth-label" for="senhaInput">Senha de acesso</label>
+    <input
+      class="auth-input"
+      id="senhaInput"
+      type="password"
+      placeholder="••••••••"
+      autocomplete="current-password"
+    >
+    <button class="auth-btn" id="loginBtn">Entrar</button>
+    <div class="auth-error" id="authError"></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════
+     APP PRINCIPAL
+══════════════════════════════════════════════════ -->
+<div id="app">
+
+  <!-- Header -->
+  <header class="app-header">
+    <div class="header-title">✂️ Tiago Barbearia | Agenda</div>
+    <button class="btn-sair" id="btnSair">Sair</button>
+  </header>
+
+  <!-- Tabs -->
+  <nav class="tabs">
+    <button class="tab-btn active" data-tab="tabAgenda">📅 Agenda</button>
+    <button class="tab-btn" data-tab="tabHorarios">⚙️ Horários</button>
+  </nav>
+
+  <!-- ── Tab Agenda ──────────────────────────────── -->
+  <div class="tab-content active" id="tabAgenda">
+    <div class="agenda-left">
+      <!-- Cabeçalho do mês -->
+      <div class="month-header">
+        <button class="month-nav-btn" id="btnPrevMonth">‹</button>
+        <div class="month-title" id="monthTitle">— —</div>
+        <button class="month-nav-btn" id="btnNextMonth">›</button>
+      </div>
+
+      <!-- Grade de dias da semana -->
+      <div class="cal-grid-wrap">
+        <div class="cal-weekdays">
+          <div class="cal-weekday">Dom</div>
+          <div class="cal-weekday">Seg</div>
+          <div class="cal-weekday">Ter</div>
+          <div class="cal-weekday">Qua</div>
+          <div class="cal-weekday">Qui</div>
+          <div class="cal-weekday">Sex</div>
+          <div class="cal-weekday">Sáb</div>
+        </div>
+        <div class="cal-grid" id="calGrid"></div>
+      </div>
+    </div>
+
+    <!-- Painel (bottom sheet / lateral) -->
+    <div class="sheet-overlay" id="sheetOverlay"></div>
+    <aside class="day-panel" id="dayPanel">
+      <div class="panel-handle"></div>
+      <div class="panel-header">
+        <div class="panel-date" id="panelDate">—</div>
+        <button class="panel-close-btn" id="panelCloseBtn">✕</button>
+      </div>
+      <div class="panel-body" id="panelBody">
+        <div class="panel-placeholder">
+          <div class="panel-placeholder-icon">📅</div>
+          <span>Selecione um dia para ver os agendamentos</span>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <!-- ── Tab Horários ────────────────────────────── -->
+  <div class="tab-content" id="tabHorarios">
+    <div style="padding:20px 16px calc(100px + env(safe-area-inset-bottom,0px)); max-width:640px; margin:0 auto;">
+
+      <div class="section-title">Dias e Horários Padrão</div>
+      <div id="weekdayCards"></div>
+
+      <div class="exc-section">
+        <div class="section-title">Exceções de Data</div>
+
+        <div class="exc-form">
+          <div class="exc-form-row">
+            <div class="exc-form-group">
+              <label class="exc-form-label">Data</label>
+              <input class="exc-form-input" type="date" id="excData">
+            </div>
+            <div class="exc-form-group" style="min-width:110px; max-width:130px;">
+              <label class="exc-form-label">Tipo</label>
+              <select class="exc-form-select" id="excTipo">
+                <option value="fechado">Fechado</option>
+                <option value="aberto">Aberto</option>
+              </select>
+            </div>
+          </div>
+          <div class="exc-form-row">
+            <div class="exc-form-group" style="flex:1;">
+              <label class="exc-form-label">Motivo (opcional)</label>
+              <input class="exc-form-input" type="text" id="excMotivo" placeholder="ex: Feriado, Viagem...">
+            </div>
+            <button class="btn-add-exc" id="btnAddExc">+ Adicionar</button>
+          </div>
+        </div>
+
+        <div class="exc-list" id="excList"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Barra de salvar (visível só na aba Horários) -->
+  <div class="save-bar" id="saveBar">
+    <button class="btn-salvar" id="btnSalvar">💾 Salvar configuração</button>
+  </div>
+
+</div><!-- /app -->
+
+<!-- Toast de feedback -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ================================================================
+//  CONFIGURAÇÃO
+// ================================================================
+const CONFIG = {
+  scriptUrl: 'COLE_AQUI_A_URL_DO_SEU_APPS_SCRIPT',
+  senha:     '1234',
+};
+
+// ================================================================
+//  ESTADO GLOBAL
+// ================================================================
+const STATE = {
+  currentYear:  new Date().getFullYear(),
+  currentMonth: new Date().getMonth(), // 0-indexed
+  agendaMap:    {},          // { 'YYYY-MM-DD': [ ...appointments ] }
+  horariosConfig: null,      // config carregada do servidor
+  selectedDate:  null,       // 'YYYY-MM-DD'
+  loading:       false,
+};
+
+const isMock = CONFIG.scriptUrl.includes('COLE_AQUI');
+
+// ================================================================
+//  MOCK DATA (quando scriptUrl não configurado)
+// ================================================================
+function getMockConfig() {
+  return {
+    padrao: {
+      0: { ativo: false },
+      1: { ativo: true,  periodos: [{inicio:9,fim:12},{inicio:14,fim:19}] },
+      2: { ativo: true,  periodos: [{inicio:9,fim:12},{inicio:14,fim:19}] },
+      3: { ativo: true,  periodos: [{inicio:9,fim:12},{inicio:14,fim:19}] },
+      4: { ativo: true,  periodos: [{inicio:9,fim:12},{inicio:14,fim:19}] },
+      5: { ativo: true,  periodos: [{inicio:9,fim:12},{inicio:14,fim:19}] },
+      6: { ativo: true,  periodos: [{inicio:9,fim:19}] },
+    },
+    excecoes: [],
+  };
+}
+
+function getMockAgenda(year, month) {
+  // Gera alguns agendamentos fictícios no mês
+  const map = {};
+  const hoje = new Date();
+  const dias = new Date(year, month + 1, 0).getDate();
+
+  const nomes    = ['Lucas Ferreira','Carlos Souza','Bruno Lima','Pedro Alves','Matheus Costa'];
+  const servicos = ['Corte Degradê','Barba','Combo Cabelo e Barba','Corte Social','Pezinho'];
+  const valores  = ['R$ 45,00','R$ 35,00','R$ 70,00','R$ 45,00','R$ 15,00'];
+
+  for (let d = 1; d <= dias; d++) {
+    const dt = new Date(year, month, d);
+    if (dt.getDay() === 0) continue; // domingo fechado
+    if (Math.random() > 0.55) continue; // ~45% dos dias tem agendamento
+    const qtd = Math.floor(Math.random() * 5) + 1;
+    const dateStr = formatDateISO(year, month, d);
+    map[dateStr] = [];
+    for (let i = 0; i < qtd; i++) {
+      const idx = Math.floor(Math.random() * nomes.length);
+      map[dateStr].push({
+        horario:  `${9 + i}:00`,
+        horFim:   `${10 + i}:00`,
+        nome:     nomes[idx],
+        servicos: servicos[idx],
+        valor:    valores[idx],
+      });
+    }
+  }
+  return map;
+}
+
+// ================================================================
+//  UTILITÁRIOS
+// ================================================================
+const MESES = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho',
+               'Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+const DIAS_EXT = ['Domingo','Segunda-feira','Terça-feira','Quarta-feira',
+                  'Quinta-feira','Sexta-feira','Sábado'];
+
+function formatDateISO(year, month, day) {
+  return `${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+}
+
+function parseDateISO(str) {
+  const [y,m,d] = str.split('-').map(Number);
+  return new Date(y, m-1, d);
+}
+
+function formatDateBR(str) {
+  const [y,m,d] = str.split('-').map(Number);
+  return `${String(d).padStart(2,'0')}/${String(m).padStart(2,'0')}/${y}`;
+}
+
+function formatDateLong(str) {
+  const dt = parseDateISO(str);
+  return `${DIAS_EXT[dt.getDay()]}, ${dt.getDate()} de ${MESES[dt.getMonth()].toLowerCase()} de ${dt.getFullYear()}`;
+}
+
+function showToast(msg, duration = 2800) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), duration);
+}
+
+// ================================================================
+//  AUTENTICAÇÃO
+// ================================================================
+function checkAuth() {
+  return sessionStorage.getItem('tbagenda_auth') === 'ok';
+}
+
+function doLogin() {
+  const val = document.getElementById('senhaInput').value;
+  if (val === CONFIG.senha) {
+    sessionStorage.setItem('tbagenda_auth', 'ok');
+    document.getElementById('authScreen').style.display = 'none';
+    document.getElementById('app').classList.add('visible');
+    initApp();
+  } else {
+    const err = document.getElementById('authError');
+    err.textContent = 'Senha incorreta. Tente novamente.';
+    document.getElementById('senhaInput').value = '';
+    document.getElementById('senhaInput').focus();
+    setTimeout(() => err.textContent = '', 3000);
+  }
+}
+
+document.getElementById('loginBtn').addEventListener('click', doLogin);
+document.getElementById('senhaInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') doLogin();
+});
+
+document.getElementById('btnSair').addEventListener('click', () => {
+  sessionStorage.removeItem('tbagenda_auth');
+  document.getElementById('app').classList.remove('visible');
+  document.getElementById('authScreen').style.display = '';
+  document.getElementById('senhaInput').value = '';
+});
+
+if (checkAuth()) {
+  document.getElementById('authScreen').style.display = 'none';
+  document.getElementById('app').classList.add('visible');
+  initApp();
+}
+
+// ================================================================
+//  TABS
+// ================================================================
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const target = btn.dataset.tab;
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b === btn));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.toggle('active', c.id === target));
+    document.getElementById('saveBar').classList.toggle('visible', target === 'tabHorarios');
+  });
+});
+
+// ================================================================
+//  DADOS — agenda
+// ================================================================
+async function carregarAgenda(year, month) {
+  if (isMock) {
+    await new Promise(r => setTimeout(r, 300)); // simula latência
+    STATE.agendaMap = getMockAgenda(year, month);
+    return;
+  }
+  try {
+    const d1 = formatDateISO(year, month, 1);
+    const d2 = formatDateISO(year, month + 1, 0);
+    const url = `${CONFIG.scriptUrl}?action=getAgenda&timeMin=${d1}T00:00:00&timeMax=${d2}T23:59:59`;
+    const resp = await fetch(url);
+    const data = await resp.json();
+    if (data.status === 'ok') {
+      STATE.agendaMap = {};
+      (data.events || []).forEach(ev => {
+        if (!STATE.agendaMap[ev.data]) STATE.agendaMap[ev.data] = [];
+        STATE.agendaMap[ev.data].push(ev);
+      });
+    }
+  } catch(e) {
+    console.warn('Erro ao carregar agenda:', e);
+  }
+}
+
+// ================================================================
+//  DADOS — horários
+// ================================================================
+async function carregarHorarios() {
+  if (isMock) {
+    await new Promise(r => setTimeout(r, 200));
+    STATE.horariosConfig = getMockConfig();
+    return;
+  }
+  try {
+    const resp = await fetch(`${CONFIG.scriptUrl}?action=getHorarios`);
+    const data = await resp.json();
+    if (data.status === 'ok') {
+      STATE.horariosConfig = { padrao: data.padrao, excecoes: data.excecoes || [] };
+    }
+  } catch(e) {
+    console.warn('Erro ao carregar horários:', e);
+    STATE.horariosConfig = getMockConfig();
+  }
+}
+
+async function salvarHorarios(config) {
+  if (isMock) {
+    await new Promise(r => setTimeout(r, 350));
+    return { status: 'ok' };
+  }
+  const resp = await fetch(CONFIG.scriptUrl, {
+    method:  'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body:    JSON.stringify({ action: 'salvarHorarios', ...config }),
+  });
+  return resp.json();
+}
+
+async function salvarExcecao(data, ativo, motivo) {
+  if (isMock) {
+    await new Promise(r => setTimeout(r, 250));
+    return { status: 'ok' };
+  }
+  const resp = await fetch(CONFIG.scriptUrl, {
+    method:  'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body:    JSON.stringify({ action: 'salvarExcecao', data, ativo, motivo }),
+  });
+  return resp.json();
+}
+
+async function removerExcecao(data) {
+  if (isMock) {
+    await new Promise(r => setTimeout(r, 250));
+    return { status: 'ok' };
+  }
+  const resp = await fetch(CONFIG.scriptUrl, {
+    method:  'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body:    JSON.stringify({ action: 'removerExcecao', data }),
+  });
+  return resp.json();
+}
+
+// ================================================================
+//  CALENDÁRIO — render
+// ================================================================
+function isDayOpen(dateStr) {
+  if (!STATE.horariosConfig) return true;
+  const dt  = parseDateISO(dateStr);
+  const dow = dt.getDay();
+
+  const exc = (STATE.horariosConfig.excecoes || []).find(e => e.data === dateStr);
+  if (exc) return exc.ativo;
+
+  const pad = STATE.horariosConfig.padrao;
+  if (!pad || pad[dow] === undefined) return true;
+  return pad[dow].ativo !== false;
+}
+
+function isExcClosed(dateStr) {
+  const exc = (STATE.horariosConfig?.excecoes || []).find(e => e.data === dateStr);
+  return exc && !exc.ativo;
+}
+
+function isExcOpen(dateStr) {
+  const exc = (STATE.horariosConfig?.excecoes || []).find(e => e.data === dateStr);
+  return exc && exc.ativo;
+}
+
+function renderCalendar() {
+  const year  = STATE.currentYear;
+  const month = STATE.currentMonth;
+  const today = new Date();
+
+  document.getElementById('monthTitle').textContent = `${MESES[month]} ${year}`;
+
+  const grid      = document.getElementById('calGrid');
+  const firstDay  = new Date(year, month, 1).getDay();   // dia da semana do 1º
+  const daysInMon = new Date(year, month + 1, 0).getDate();
+  const daysInPrev = new Date(year, month, 0).getDate();
+
+  grid.innerHTML = '';
+
+  // Dias do mês anterior
+  for (let i = firstDay - 1; i >= 0; i--) {
+    const cell = document.createElement('div');
+    cell.className = 'cal-day other-month';
+    cell.innerHTML = `<span class="day-num">${daysInPrev - i}</span>`;
+    grid.appendChild(cell);
+  }
+
+  // Dias do mês atual
+  for (let d = 1; d <= daysInMon; d++) {
+    const dateStr = formatDateISO(year, month, d);
+    const isToday = (today.getFullYear() === year && today.getMonth() === month && today.getDate() === d);
+    const open    = isDayOpen(dateStr);
+    const excClosed = isExcClosed(dateStr);
+    const excOpen   = isExcOpen(dateStr);
+    const appts   = STATE.agendaMap[dateStr] || [];
+
+    const cell = document.createElement('div');
+    cell.className = 'cal-day';
+    cell.dataset.date = dateStr;
+
+    if (isToday)   cell.classList.add('today');
+    if (!open)     cell.classList.add(excClosed ? 'exc-closed' : 'closed-day');
+    if (dateStr === STATE.selectedDate) cell.classList.add('selected');
+
+    let inner = `<span class="day-num">${d}</span>`;
+
+    if (!open && excClosed) {
+      inner += `<span class="day-lock">🔒</span>`;
+    } else if (open && appts.length > 0) {
+      const maxDots = 5;
+      let dotsHtml = '<div class="day-dots">';
+      const shown = Math.min(appts.length, maxDots);
+      for (let x = 0; x < shown; x++) {
+        dotsHtml += '<span class="day-dot"></span>';
+      }
+      if (appts.length > maxDots) {
+        dotsHtml += `<span class="day-more">+${appts.length - maxDots}</span>`;
+      }
+      dotsHtml += '</div>';
+      inner += dotsHtml;
+    }
+
+    cell.innerHTML = inner;
+
+    cell.addEventListener('click', () => selectDay(dateStr));
+    grid.appendChild(cell);
+  }
+
+  // Dias do mês seguinte para completar a grade
+  const totalCells = firstDay + daysInMon;
+  const remainder  = totalCells % 7 === 0 ? 0 : 7 - (totalCells % 7);
+  for (let d = 1; d <= remainder; d++) {
+    const cell = document.createElement('div');
+    cell.className = 'cal-day other-month';
+    cell.innerHTML = `<span class="day-num">${d}</span>`;
+    grid.appendChild(cell);
+  }
+}
+
+// ================================================================
+//  SELEÇÃO DE DIA
+// ================================================================
+function selectDay(dateStr) {
+  STATE.selectedDate = dateStr;
+
+  // atualiza visual de seleção
+  document.querySelectorAll('.cal-day').forEach(c => {
+    c.classList.toggle('selected', c.dataset.date === dateStr);
+  });
+
+  renderPanel(dateStr);
+  openPanel();
+}
+
+function openPanel() {
+  const panel   = document.getElementById('dayPanel');
+  const overlay = document.getElementById('sheetOverlay');
+  panel.classList.add('open');
+  overlay.classList.add('open');
+}
+
+function closePanel() {
+  const panel   = document.getElementById('dayPanel');
+  const overlay = document.getElementById('sheetOverlay');
+  panel.classList.remove('open');
+  overlay.classList.remove('open');
+  STATE.selectedDate = null;
+  document.querySelectorAll('.cal-day').forEach(c => c.classList.remove('selected'));
+}
+
+document.getElementById('panelCloseBtn').addEventListener('click', closePanel);
+document.getElementById('sheetOverlay').addEventListener('click', closePanel);
+
+// ── Swipe down para fechar o bottom sheet ─────────────────
+(function() {
+  const panel = document.getElementById('dayPanel');
+  let startY = 0, startScrollTop = 0, dragging = false;
+
+  panel.addEventListener('touchstart', e => {
+    startY = e.touches[0].clientY;
+    startScrollTop = document.getElementById('panelBody').scrollTop;
+    dragging = false;
+  }, { passive: true });
+
+  panel.addEventListener('touchmove', e => {
+    const dy = e.touches[0].clientY - startY;
+    const body = document.getElementById('panelBody');
+
+    // só arrastar para baixo quando o scroll interno está no topo
+    if (dy > 0 && body.scrollTop <= 0) {
+      dragging = true;
+      const resistance = Math.min(dy * 0.6, 200);
+      panel.style.transition = 'none';
+      panel.style.transform = `translateY(${resistance}px)`;
+    }
+  }, { passive: true });
+
+  panel.addEventListener('touchend', e => {
+    panel.style.transition = '';
+    const dy = e.changedTouches[0].clientY - startY;
+    if (dragging && dy > 80) {
+      panel.style.transform = '';
+      closePanel();
+    } else {
+      panel.style.transform = '';
+    }
+    dragging = false;
+  });
+})();
+
+// ================================================================
+//  RENDER PAINEL DE DETALHES
+// ================================================================
+function renderPanel(dateStr) {
+  document.getElementById('panelDate').textContent = formatDateLong(dateStr);
+  const body  = document.getElementById('panelBody');
+  const open  = isDayOpen(dateStr);
+  const appts = STATE.agendaMap[dateStr] || [];
+  const excC  = isExcClosed(dateStr);
+  const excO  = isExcOpen(dateStr);
+  const dt    = parseDateISO(dateStr);
+  const normOpen = STATE.horariosConfig?.padrao?.[dt.getDay()]?.ativo !== false;
+
+  body.innerHTML = '';
+
+  if (!open) {
+    // DIA FECHADO
+    const div = document.createElement('div');
+    div.className = 'panel-closed-info';
+    div.innerHTML = `
+      <div class="panel-closed-icon">🔒</div>
+      <div class="panel-closed-text">${excC ? 'Fechado por exceção' : 'Dia fechado (padrão)'}</div>
+    `;
+
+    // Botão para abrir como exceção
+    const btnAbrir = document.createElement('button');
+    btnAbrir.className = 'btn-exc-open';
+    btnAbrir.textContent = '🔓 Abrir como exceção';
+    btnAbrir.addEventListener('click', () => aplicarExcecao(dateStr, true));
+    div.appendChild(btnAbrir);
+    body.appendChild(div);
+    return;
+  }
+
+  // DIA ABERTO
+  if (appts.length === 0) {
+    const div = document.createElement('div');
+    div.className = 'panel-empty';
+    div.innerHTML = `
+      <div class="panel-empty-icon">✂️</div>
+      <div class="panel-empty-text">Nenhum agendamento para este dia</div>
+    `;
+    body.appendChild(div);
+  } else {
+    appts.forEach(a => {
+      const card = document.createElement('div');
+      card.className = 'appt-card';
+      card.innerHTML = `
+        <div class="appt-time-col">
+          <div class="appt-time">${a.horario}</div>
+          ${a.horFim ? `<div class="appt-time-end">até ${a.horFim}</div>` : ''}
+        </div>
+        <div class="appt-info">
+          <div class="appt-nome">${a.nome}</div>
+          <div class="appt-servico">${a.servicos || '—'}</div>
+          ${a.valor ? `<div class="appt-valor">${a.valor}</div>` : ''}
+        </div>
+      `;
+      body.appendChild(card);
+    });
+  }
+
+  // Botão "Fechar como exceção" em dias normalmente abertos
+  const btnFechar = document.createElement('button');
+  btnFechar.className = 'btn-exc-close';
+  btnFechar.textContent = '🔒 Fechar como exceção';
+  btnFechar.addEventListener('click', () => {
+    // Mostra campo de motivo
+    const motivoInput = document.createElement('input');
+    motivoInput.className = 'btn-exc-motivo';
+    motivoInput.placeholder = 'Motivo (ex: Feriado, Viagem...)';
+    const btnConf = document.createElement('button');
+    btnConf.className = 'btn-exc-close';
+    btnConf.textContent = '✓ Confirmar fechamento';
+    btnConf.style.marginTop = '8px';
+    btnConf.addEventListener('click', () => aplicarExcecao(dateStr, false, motivoInput.value));
+    btnFechar.replaceWith(motivoInput);
+    body.appendChild(btnConf);
+    motivoInput.focus();
+  });
+  body.appendChild(btnFechar);
+
+  // Se for uma exceção aberta (normalmente seria fechado), mostra opção de remover exceção
+  if (excO) {
+    const btnRemExc = document.createElement('button');
+    btnRemExc.className = 'btn-exc-close';
+    btnRemExc.style.marginTop = '6px';
+    btnRemExc.textContent = '↩️ Desfazer exceção (fechar novamente)';
+    btnRemExc.addEventListener('click', () => desfazerExcecao(dateStr));
+    body.appendChild(btnRemExc);
+  }
+}
+
+// ================================================================
+//  EXCEÇÕES — aplicar / remover
+// ================================================================
+async function aplicarExcecao(dateStr, ativo, motivo = '') {
+  // Atualiza config local
+  if (!STATE.horariosConfig.excecoes) STATE.horariosConfig.excecoes = [];
+  STATE.horariosConfig.excecoes = STATE.horariosConfig.excecoes.filter(e => e.data !== dateStr);
+  STATE.horariosConfig.excecoes.push({ data: dateStr, ativo, motivo });
+
+  renderCalendar();
+  renderPanel(dateStr);
+
+  try {
+    const res = await salvarExcecao(dateStr, ativo, motivo);
+    if (res.status === 'ok') {
+      showToast(ativo ? '✅ Dia aberto com sucesso' : '🔒 Dia fechado com sucesso');
+    } else {
+      showToast('⚠️ Erro ao salvar exceção');
+    }
+  } catch(e) {
+    showToast(isMock ? '✅ Exceção salva (modo demo)' : '⚠️ Erro de conexão');
+  }
+}
+
+async function desfazerExcecao(dateStr) {
+  if (!STATE.horariosConfig.excecoes) STATE.horariosConfig.excecoes = [];
+  STATE.horariosConfig.excecoes = STATE.horariosConfig.excecoes.filter(e => e.data !== dateStr);
+
+  renderCalendar();
+  renderPanel(dateStr);
+
+  try {
+    const res = await removerExcecao(dateStr);
+    showToast(res.status === 'ok' ? '↩️ Exceção removida' : '⚠️ Erro ao remover');
+  } catch(e) {
+    showToast(isMock ? '↩️ Exceção removida (modo demo)' : '⚠️ Erro de conexão');
+  }
+}
+
+// ================================================================
+//  NAVEGAÇÃO DE MÊS
+// ================================================================
+async function goMonth(delta) {
+  STATE.currentMonth += delta;
+  if (STATE.currentMonth < 0)  { STATE.currentMonth = 11; STATE.currentYear--;  }
+  if (STATE.currentMonth > 11) { STATE.currentMonth = 0;  STATE.currentYear++;  }
+  closePanel();
+  renderCalendar();
+  await carregarAgenda(STATE.currentYear, STATE.currentMonth);
+  renderCalendar();
+}
+
+document.getElementById('btnPrevMonth').addEventListener('click', () => goMonth(-1));
+document.getElementById('btnNextMonth').addEventListener('click', () => goMonth(+1));
+
+// ================================================================
+//  TAB HORÁRIOS — render
+// ================================================================
+const DIAS_SEMANA = ['Domingo','Segunda-feira','Terça-feira','Quarta-feira','Quinta-feira','Sexta-feira','Sábado'];
+
+function renderHorarios() {
+  const config = STATE.horariosConfig;
+  if (!config) return;
+
+  renderWeekdayCards(config);
+  renderExcList(config.excecoes || []);
+}
+
+function renderWeekdayCards(config) {
+  const container = document.getElementById('weekdayCards');
+  container.innerHTML = '';
+
+  for (let dow = 0; dow < 7; dow++) {
+    const dConf = config.padrao?.[dow] || { ativo: false };
+    const ativo = dConf.ativo !== false;
+
+    const card = document.createElement('div');
+    card.className = 'weekday-card';
+    card.dataset.dow = dow;
+
+    const header = document.createElement('div');
+    header.className = 'weekday-header';
+    header.innerHTML = `
+      <span class="weekday-name">${DIAS_SEMANA[dow]}</span>
+      <label class="toggle">
+        <input type="checkbox" class="toggle-day" data-dow="${dow}" ${ativo ? 'checked' : ''}>
+        <span class="toggle-slider"></span>
+      </label>
+    `;
+    card.appendChild(header);
+
+    const periodsDiv = document.createElement('div');
+    periodsDiv.className = 'weekday-periods' + (ativo ? ' open' : '');
+    periodsDiv.dataset.dow = dow;
+
+    renderPeriodRows(periodsDiv, dConf.periodos || [{inicio:9,fim:18}], dow);
+    card.appendChild(periodsDiv);
+    container.appendChild(card);
+
+    header.querySelector('.toggle-day').addEventListener('change', function() {
+      periodsDiv.classList.toggle('open', this.checked);
+    });
+  }
+}
+
+function renderPeriodRows(container, periodos, dow) {
+  container.innerHTML = '';
+
+  periodos.forEach((p, idx) => {
+    const row = document.createElement('div');
+    row.className = 'period-row';
+    row.dataset.idx = idx;
+    const inicioVal = `${String(p.inicio).padStart(2,'0')}:00`;
+    const fimVal    = `${String(p.fim).padStart(2,'0')}:00`;
+    row.innerHTML = `
+      <span class="period-label">${idx === 0 ? 'Abertura' : '2º Per.'}</span>
+      <input class="period-input" type="time" value="${inicioVal}" data-field="inicio">
+      <span class="period-sep">→</span>
+      <input class="period-input" type="time" value="${fimVal}" data-field="fim">
+    `;
+    container.appendChild(row);
+  });
+
+  const btnRow = document.createElement('div');
+
+  if (periodos.length < 2) {
+    const btnAdd = document.createElement('button');
+    btnAdd.className = 'btn-add-period';
+    btnAdd.innerHTML = '+ Segundo período';
+    btnAdd.addEventListener('click', () => {
+      const novos = coletarPeriodosDow(container);
+      novos.push({ inicio: 14, fim: 19 });
+      renderPeriodRows(container, novos, dow);
+    });
+    btnRow.appendChild(btnAdd);
+  } else {
+    const btnRem = document.createElement('button');
+    btnRem.className = 'btn-rem-period';
+    btnRem.innerHTML = '− Remover pausa';
+    btnRem.addEventListener('click', () => {
+      const novos = coletarPeriodosDow(container);
+      novos.pop();
+      renderPeriodRows(container, novos, dow);
+    });
+    btnRow.appendChild(btnRem);
+  }
+
+  container.appendChild(btnRow);
+}
+
+function coletarPeriodosDow(container) {
+  const rows = container.querySelectorAll('.period-row');
+  return Array.from(rows).map(row => ({
+    inicio: parseInt(row.querySelector('[data-field="inicio"]').value),
+    fim:    parseInt(row.querySelector('[data-field="fim"]').value),
+  }));
+}
+
+function coletarConfigAtual() {
+  const padrao = {};
+  for (let dow = 0; dow < 7; dow++) {
+    const toggle = document.querySelector(`.toggle-day[data-dow="${dow}"]`);
+    if (!toggle) continue;
+    const ativo = toggle.checked;
+    if (!ativo) {
+      padrao[dow] = { ativo: false };
+    } else {
+      const periodsDiv = document.querySelector(`.weekday-periods[data-dow="${dow}"]`);
+      padrao[dow] = {
+        ativo: true,
+        periodos: coletarPeriodosDow(periodsDiv),
+      };
+    }
+  }
+  return padrao;
+}
+
+function renderExcList(excecoes) {
+  const list = document.getElementById('excList');
+  list.innerHTML = '';
+
+  if (excecoes.length === 0) {
+    list.innerHTML = '<div style="font-size:13px;color:var(--text-muted);padding:8px 0;">Nenhuma exceção cadastrada.</div>';
+    return;
+  }
+
+  excecoes.forEach(exc => {
+    const item = document.createElement('div');
+    item.className = 'exc-item';
+    item.innerHTML = `
+      <span class="exc-item-date">${formatDateBR(exc.data)}</span>
+      <span class="exc-item-motivo">${exc.motivo || '—'}</span>
+      <span class="exc-badge ${exc.ativo ? 'aberto' : 'fechado'}">${exc.ativo ? 'Aberto' : 'Fechado'}</span>
+      <button class="btn-rem-exc" title="Remover exceção">✕</button>
+    `;
+    item.querySelector('.btn-rem-exc').addEventListener('click', async () => {
+      STATE.horariosConfig.excecoes = STATE.horariosConfig.excecoes.filter(e => e.data !== exc.data);
+      renderExcList(STATE.horariosConfig.excecoes);
+      renderCalendar();
+      try {
+        await removerExcecao(exc.data);
+        showToast('✕ Exceção removida');
+      } catch(e) {
+        showToast(isMock ? '✕ Exceção removida (modo demo)' : '⚠️ Erro ao remover');
+      }
+    });
+    list.appendChild(item);
+  });
+}
+
+// Botão adicionar exceção
+document.getElementById('btnAddExc').addEventListener('click', async () => {
+  const data   = document.getElementById('excData').value;
+  const tipo   = document.getElementById('excTipo').value;
+  const motivo = document.getElementById('excMotivo').value.trim();
+
+  if (!data) { showToast('⚠️ Selecione uma data'); return; }
+
+  if (!STATE.horariosConfig.excecoes) STATE.horariosConfig.excecoes = [];
+  STATE.horariosConfig.excecoes = STATE.horariosConfig.excecoes.filter(e => e.data !== data);
+  STATE.horariosConfig.excecoes.push({ data, ativo: tipo === 'aberto', motivo });
+  STATE.horariosConfig.excecoes.sort((a,b) => a.data.localeCompare(b.data));
+
+  renderExcList(STATE.horariosConfig.excecoes);
+  renderCalendar();
+
+  document.getElementById('excData').value   = '';
+  document.getElementById('excMotivo').value = '';
+
+  try {
+    await salvarExcecao(data, tipo === 'aberto', motivo);
+    showToast('✅ Exceção adicionada');
+  } catch(e) {
+    showToast(isMock ? '✅ Exceção adicionada (modo demo)' : '⚠️ Erro ao salvar');
+  }
+});
+
+// Botão salvar horários
+document.getElementById('btnSalvar').addEventListener('click', async () => {
+  const btn = document.getElementById('btnSalvar');
+  btn.disabled = true;
+  btn.textContent = 'Salvando...';
+
+  const padrao   = coletarConfigAtual();
+  const excecoes = STATE.horariosConfig?.excecoes || [];
+
+  STATE.horariosConfig = { padrao, excecoes };
+  renderCalendar();
+
+  try {
+    const res = await salvarHorarios({ padrao, excecoes });
+    showToast(res.status === 'ok' ? '💾 Configuração salva!' : '⚠️ Erro ao salvar');
+  } catch(e) {
+    showToast(isMock ? '💾 Configuração salva (modo demo)!' : '⚠️ Erro de conexão');
+  }
+
+  btn.disabled = false;
+  btn.textContent = '💾 Salvar configuração';
+});
+
+// ================================================================
+//  INICIALIZAÇÃO
+// ================================================================
+async function initApp() {
+  // Mostra loading no calendário
+  document.getElementById('calGrid').innerHTML =
+    '<div style="grid-column:1/-1;display:flex;justify-content:center;padding:30px 0;">' +
+    '<div class="loading-dots"><span></span><span></span><span></span></div></div>';
+
+  // Carrega dados em paralelo
+  await Promise.all([
+    carregarHorarios(),
+    carregarAgenda(STATE.currentYear, STATE.currentMonth),
+  ]);
+
+  renderCalendar();
+  renderHorarios();
+
+  if (isMock) {
+    showToast('⚙️ Modo demo — configure scriptUrl para conectar', 4000);
+  }
+}
+</script>
+</body>
+</html>
