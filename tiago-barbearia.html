@@ -331,16 +331,15 @@ const CONFIG = {
 };
 
 const SERVICOS = [
-  { id: 'degradê',      nome: 'Corte Degradê',                    emoji: '✂️', duracao: 30, preco: 45 },
-  { id: 'social',       nome: 'Corte Social',                      emoji: '💈', duracao: 30, preco: 45 },
-  { id: 'tesoura',      nome: 'Corte Tesoura',                     emoji: '✂️', duracao: 30, preco: 45 },
-  { id: 'maquina',      nome: 'Corte Máquina',                     emoji: '⚡', duracao: 20, preco: 25 },
-  { id: 'barba',        nome: 'Barba',                             emoji: '🪒', duracao: 30, preco: 35 },
-  { id: 'sobrancelha',  nome: 'Sobrancelha',                       emoji: '✨', duracao: 10, preco: 15 },
-  { id: 'pezinho',      nome: 'Pezinho',                           emoji: '👟', duracao: 10, preco: 15 },
-  { id: 'combo_cb',     nome: 'Combo Cabelo e Barba',              emoji: '🔥', duracao: 60, preco: 70 },
-  { id: 'combo_cbs',    nome: 'Combo Cabelo, Barba e Sobrancelha', emoji: '💎', duracao: 60, preco: 75 },
-  { id: 'personalizado', nome: 'Personalizado',                    emoji: '💬', duracao: 0,  preco: 0, wpp: true },
+  // ── Cortes ──
+  { id: 'degradê',     nome: 'Corte Degradê', emoji: '✂️', duracao: 30, preco: 45 },
+  { id: 'social',      nome: 'Corte Social',  emoji: '💈', duracao: 30, preco: 45 },
+  { id: 'tesoura',     nome: 'Corte Tesoura', emoji: '✂️', duracao: 30, preco: 45 },
+  { id: 'maquina',     nome: 'Corte Máquina', emoji: '⚡', duracao: 20, preco: 25 },
+  // ── Acabamentos ──
+  { id: 'barba',       nome: 'Barba',         emoji: '🪒', duracao: 30, preco: 35 },
+  { id: 'sobrancelha', nome: 'Sobrancelha',   emoji: '✨', duracao: 10, preco: 15 },
+  { id: 'pezinho',     nome: 'Pezinho',       emoji: '👟', duracao: 10, preco: 15 },
 ];
 
 // ── Estado ───────────────────────────────────────────────────
@@ -597,23 +596,12 @@ async function askAcao() {
 async function askServico() {
   await bot('Que serviço você vai querer? 😊');
   addOptions(
-    SERVICOS.map(s => ({ label: `${s.emoji} ${s.nome}`, id: s.id, wpp: !!s.wpp })),
-    async sel => {
-      if (sel.some(s => s.wpp)) {
-        user('💬 Personalizado');
-        await bot('Claro! Para serviços personalizados, vou te encaminhar direto para o WhatsApp do Tiago. 👇');
-        addOptions(
-          [{ label: '📲 Abrir WhatsApp', cls: 'confirm' }],
-          () => window.open(`https://wa.me/${CONFIG.whatsapp}?text=${encodeURIComponent('Olá Tiago! Quero agendar um serviço personalizado.')}`, '_blank')
-        );
-        return;
-      }
-      const comboSel = sel.find(s => s.id.startsWith('combo'));
-      const selFinal = comboSel ? [comboSel] : sel;
-      B.servicos = selFinal.map(s => s.id);
-      const sesSvc = selFinal.map(s => SERVICOS.find(sv => sv.id === s.id));
-      B.duracao = sesSvc.reduce((a,s) => a+s.duracao, 0);
-      B.preco   = sesSvc.reduce((a,s) => a+s.preco,   0);
+    SERVICOS.map(s => ({ label: `${s.emoji} ${s.nome}`, id: s.id })),
+    sel => {
+      B.servicos = sel.map(s => s.id);
+      const sesSvc = sel.map(s => SERVICOS.find(sv => sv.id === s.id));
+      B.duracao = sesSvc.reduce((a,s) => a + s.duracao, 0);
+      B.preco   = sesSvc.reduce((a,s) => a + s.preco,   0);
       user(sesSvc.map(s => s.nome).join(' + '));
       askData();
     },
@@ -849,10 +837,28 @@ async function cancelarExecutar(ag) {
     if (data.status === 'not_found') { await bot('Esse agendamento não foi encontrado ou já foi cancelado.', 300); return; }
     if (data.status !== 'ok') throw new Error(data.message);
     await bot(`✅ <strong>Agendamento cancelado!</strong><br>${ag.servicos} às ${ag.horario} foi removido e o horário liberado.`, 300);
-    await typing(500);
+    await bot('Deseja avisar o Tiago pelo WhatsApp? 👇', 600);
+
+    const msgCancel = encodeURIComponent(
+      `Olá Tiago! Precisei cancelar meu agendamento.\n\n` +
+      `👤 *${ag.nome || ''}*\n` +
+      `✂️ ${ag.servicos}\n` +
+      `📅 ${ag.data}\n` +
+      `⏰ ${ag.horario}`
+    );
+    const wppCancel = `https://wa.me/${CONFIG.whatsapp}?text=${msgCancel}`;
+
+    await typing(300);
     addOptions(
-      [{ label: '📅 Fazer novo agendamento', cls: 'confirm' }],
-      () => { user('Novo agendamento'); resetar(); }
+      [
+        { label: '📲 Avisar Tiago no WhatsApp', cls: 'confirm', url: wppCancel },
+        { label: '📅 Fazer novo agendamento' },
+      ],
+      sel => {
+        user(sel.label);
+        if (sel.url) window.open(sel.url, '_blank');
+        else resetar();
+      }
     );
   } catch(e) {
     await bot('Erro ao cancelar. Entre em contato pelo WhatsApp.', 300);
