@@ -213,24 +213,23 @@ function lembreteAutomatico() {
     const linkConfirmar = `${CONFIG.urlScript}?action=confirm&token=${token}`;
     const linkCancelar  = `${CONFIG.urlScript}?action=cancel&token=${token}`;
 
-    // Lembrete por e-mail para o cliente
-    const htmlCliente = emailTemplate(`
-      <h2>Seu horário é em 2 horas! ⏰</h2>
-      <p>Olá, <strong>${nome}</strong>! Não esqueça do seu agendamento:</p>
-      <table>
-        <tr><td>Serviço(s)</td><td>${servicos}</td></tr>
-        <tr><td>Data</td><td>${dataFmt}</td></tr>
-        <tr><td>Horário</td><td>${horario}</td></tr>
-        <tr><td>Valor</td><td>${valor}</td></tr>
-      </table>
-      <p>Confirme sua presença ou cancele se necessário:</p>
-      <div class="btn-row">
-        <a href="${linkConfirmar}" class="btn-green">✅ Confirmar presença</a>
-        <a href="${linkCancelar}"  class="btn-red">❌ Cancelar agendamento</a>
-      </div>
-      <p class="note">Caso não responda, seu agendamento permanece confirmado. Te esperamos! 💈</p>
-    `);
-    GmailApp.sendEmail(email, '⏰ Lembrete: seu horário é em 2 horas — Tiago Barbearia', '', { charset: 'UTF-8', htmlBody: htmlCliente });
+    const htmlCliente = emailTemplate(
+      '<h2>Lembrete: seu horario e em 2 horas</h2>' +
+      '<p>Ola, <strong>' + nome + '</strong>! Nao esqueca do seu agendamento:</p>' +
+      '<table>' +
+      '<tr><td>Servico</td><td>' + servicos + '</td></tr>' +
+      '<tr><td>Data</td><td>' + dataFmt + '</td></tr>' +
+      '<tr><td>Horario</td><td>' + horario + '</td></tr>' +
+      '<tr><td>Valor</td><td>' + valor + '</td></tr>' +
+      '</table>' +
+      '<p>Confirme sua presenca ou cancele se necessario:</p>' +
+      '<div class="btn-row">' +
+      '<a href="' + linkConfirmar + '" class="btn-green">Confirmar presenca</a>' +
+      '<a href="' + linkCancelar  + '" class="btn-red">Cancelar agendamento</a>' +
+      '</div>' +
+      '<p class="note">Caso nao responda, seu agendamento permanece confirmado. Te esperamos!</p>'
+    );
+    GmailApp.sendEmail(email, 'Lembrete: seu horario e em 2 horas - Tiago Barbearia', '', { charset: 'UTF-8', htmlBody: htmlCliente });
   });
 }
 
@@ -322,76 +321,70 @@ function buscarEventoPorToken(token) {
 // ================================================================
 
 function enviarEmailConfirmacao(p, dataFmt, linkCancelar) {
-  // E-mail de confirmação para o cliente
-  const htmlCliente = emailTemplate(`
-    <h2>Agendamento confirmado! ✂️</h2>
-    <p>Olá, <strong>${p.nome}</strong>! Seu horário foi reservado com sucesso.</p>
-    <table>
-      <tr><td>Serviço(s)</td><td>${p.servicos}</td></tr>
-      <tr><td>Data</td><td>${dataFmt}</td></tr>
-      <tr><td>Horário</td><td>${p.time}</td></tr>
-      <tr><td>Valor</td><td>${p.valor}</td></tr>
-    </table>
-    <p>Você receberá um <strong>lembrete por e-mail 2 horas antes</strong> do seu horário.</p>
-    <p>Precisa cancelar? Clique no botão abaixo:</p>
-    <a href="${linkCancelar}" class="btn-red">❌ Cancelar agendamento</a>
-    <p class="note" style="margin-top:8px;font-size:11px;color:#888;word-break:break-all">${linkCancelar}</p>
-  `);
-  GmailApp.sendEmail(p.email, '✅ Agendamento confirmado — Tiago Barbearia', '', { charset: 'UTF-8', htmlBody: htmlCliente });
+  const htmlCliente = emailTemplate(
+    '<h2>Agendamento confirmado</h2>' +
+    '<p>Ola, <strong>' + p.nome + '</strong>! Seu horario foi reservado com sucesso.</p>' +
+    '<table>' +
+    '<tr><td>Servico</td><td>' + p.servicos + '</td></tr>' +
+    '<tr><td>Data</td><td>' + dataFmt + '</td></tr>' +
+    '<tr><td>Horario</td><td>' + p.time + '</td></tr>' +
+    '<tr><td>Valor</td><td>' + p.valor + '</td></tr>' +
+    '</table>' +
+    '<p>Voce recebera um <strong>lembrete por e-mail 2 horas antes</strong> do seu horario.</p>' +
+    '<p>Precisa cancelar? Clique no botao abaixo:</p>' +
+    '<a href="' + linkCancelar + '" class="btn-red">Cancelar agendamento</a>'
+  );
+  GmailApp.sendEmail(p.email, 'Agendamento confirmado - Tiago Barbearia', '', { charset: 'UTF-8', htmlBody: htmlCliente });
 
-  // Notificação para o Tiago
   const telLimpo   = p.tel.replace(/\D/g, '');
-  const wppCliente = `https://wa.me/55${telLimpo}`;
-  const htmlTiago  = emailTemplate(`
-    <h2>📅 Novo agendamento!</h2>
-    <table>
-      <tr><td>👤 Cliente</td><td><strong>${p.nome}</strong></td></tr>
-      <tr><td>📱 WhatsApp</td><td><a href="${wppCliente}" style="color:#D4913A">${p.tel}</a></td></tr>
-      <tr><td>📧 E-mail</td><td>${p.email}</td></tr>
-      <tr><td>✂️ Serviço(s)</td><td>${p.servicos}</td></tr>
-      <tr><td>📆 Data</td><td>${dataFmt}</td></tr>
-      <tr><td>⏰ Horário</td><td><strong>${p.time}</strong></td></tr>
-      <tr><td>💰 Valor</td><td><strong>${p.valor}</strong></td></tr>
-    </table>
-    <p>O horário foi registrado no calendário automaticamente.</p>
-    <a href="${linkCancelar}" class="btn-red">❌ Cancelar este agendamento</a>
-  `);
-  GmailApp.sendEmail(CONFIG.emailBarbearia, `📅 Novo agendamento: ${p.nome} — ${dataFmt} às ${p.time}`, '', { charset: 'UTF-8', htmlBody: htmlTiago });
+  const wppCliente = 'https://wa.me/55' + telLimpo;
+  const htmlTiago  = emailTemplate(
+    '<h2>Novo agendamento</h2>' +
+    '<table>' +
+    '<tr><td>Cliente</td><td><strong>' + p.nome + '</strong></td></tr>' +
+    '<tr><td>WhatsApp</td><td><a href="' + wppCliente + '" style="color:#D4913A">' + p.tel + '</a></td></tr>' +
+    '<tr><td>E-mail</td><td>' + p.email + '</td></tr>' +
+    '<tr><td>Servico</td><td>' + p.servicos + '</td></tr>' +
+    '<tr><td>Data</td><td>' + dataFmt + '</td></tr>' +
+    '<tr><td>Horario</td><td><strong>' + p.time + '</strong></td></tr>' +
+    '<tr><td>Valor</td><td><strong>' + p.valor + '</strong></td></tr>' +
+    '</table>' +
+    '<p>O horario foi registrado no calendario automaticamente.</p>' +
+    '<a href="' + linkCancelar + '" class="btn-red">Cancelar este agendamento</a>'
+  );
+  GmailApp.sendEmail(CONFIG.emailBarbearia, 'Novo agendamento: ' + p.nome + ' - ' + dataFmt + ' as ' + p.time, '', { charset: 'UTF-8', htmlBody: htmlTiago });
 }
 
 function enviarEmailCancelamento(d) {
-  // E-mail ao cliente (se tiver e-mail cadastrado)
   if (d.email) {
-    const htmlCliente = emailTemplate(`
-      <h2>Agendamento cancelado</h2>
-      <p>Olá, <strong>${d.nome}</strong>. Seu agendamento foi cancelado:</p>
-      <table>
-        <tr><td>Serviço(s)</td><td>${d.servicos}</td></tr>
-        <tr><td>Data</td><td>${d.data}</td></tr>
-        <tr><td>Horário</td><td>${d.horario}</td></tr>
-      </table>
-      <p>O horário foi liberado. Para reagendar:</p>
-      <a href="${CONFIG.urlFormulario}" class="btn-green">📅 Reagendar agora</a>
-      <p class="note">Esperamos te ver em breve! 💈</p>
-    `);
-    GmailApp.sendEmail(d.email, '❌ Agendamento cancelado — Tiago Barbearia', '', { charset: 'UTF-8', htmlBody: htmlCliente });
+    const htmlCliente = emailTemplate(
+      '<h2>Agendamento cancelado</h2>' +
+      '<p>Ola, <strong>' + d.nome + '</strong>. Seu agendamento foi cancelado:</p>' +
+      '<table>' +
+      '<tr><td>Servico</td><td>' + d.servicos + '</td></tr>' +
+      '<tr><td>Data</td><td>' + d.data + '</td></tr>' +
+      '<tr><td>Horario</td><td>' + d.horario + '</td></tr>' +
+      '</table>' +
+      '<p>O horario foi liberado. Para reagendar:</p>' +
+      '<a href="' + CONFIG.urlFormulario + '" class="btn-green">Reagendar agora</a>'
+    );
+    GmailApp.sendEmail(d.email, 'Agendamento cancelado - Tiago Barbearia', '', { charset: 'UTF-8', htmlBody: htmlCliente });
   }
 
-  // Notificação para o Tiago
   const telLimpo   = (d.tel || '').replace(/\D/g, '');
-  const wppCliente = telLimpo ? `https://wa.me/55${telLimpo}` : '';
-  const htmlTiago  = emailTemplate(`
-    <h2>❌ Agendamento cancelado</h2>
-    <table>
-      <tr><td>👤 Cliente</td><td><strong>${d.nome}</strong></td></tr>
-      ${wppCliente ? `<tr><td>📱 WhatsApp</td><td><a href="${wppCliente}" style="color:#D4913A">${d.tel}</a></td></tr>` : ''}
-      <tr><td>✂️ Serviço(s)</td><td>${d.servicos}</td></tr>
-      <tr><td>📆 Data</td><td>${d.data}</td></tr>
-      <tr><td>⏰ Horário</td><td>${d.horario}</td></tr>
-    </table>
-    <p>O horário foi liberado automaticamente no calendário.</p>
-  `);
-  GmailApp.sendEmail(CONFIG.emailBarbearia, `❌ Cancelamento: ${d.nome} — ${d.data} às ${d.horario}`, '', { charset: 'UTF-8', htmlBody: htmlTiago });
+  const wppLink    = telLimpo ? '<tr><td>WhatsApp</td><td><a href="https://wa.me/55' + telLimpo + '" style="color:#D4913A">' + d.tel + '</a></td></tr>' : '';
+  const htmlTiago  = emailTemplate(
+    '<h2>Agendamento cancelado</h2>' +
+    '<table>' +
+    '<tr><td>Cliente</td><td><strong>' + d.nome + '</strong></td></tr>' +
+    wppLink +
+    '<tr><td>Servico</td><td>' + d.servicos + '</td></tr>' +
+    '<tr><td>Data</td><td>' + d.data + '</td></tr>' +
+    '<tr><td>Horario</td><td>' + d.horario + '</td></tr>' +
+    '</table>' +
+    '<p>O horario foi liberado automaticamente no calendario.</p>'
+  );
+  GmailApp.sendEmail(CONFIG.emailBarbearia, 'Cancelamento: ' + d.nome + ' - ' + d.data + ' as ' + d.horario, '', { charset: 'UTF-8', htmlBody: htmlTiago });
 }
 
 // ================================================================
@@ -627,46 +620,33 @@ function jsonResp(obj) {
 // ================================================================
 
 function emailTemplate(content) {
-  return `<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-<meta charset="UTF-8">
-<style>
-  body { font-family: 'Helvetica Neue', Arial, sans-serif; background: #0D0C09; color: #F0E8D8; margin: 0; padding: 0; }
-  .wrapper { max-width: 560px; margin: 0 auto; padding: 32px 16px 48px; }
-  .header { text-align: center; margin-bottom: 28px; }
-  .header h1 { font-size: 22px; color: #D4913A; letter-spacing: .06em; margin: 0; }
-  .header p  { font-size: 12px; color: #7D7464; margin: 4px 0 0; letter-spacing: .1em; text-transform: uppercase; }
-  .divider { width: 40px; height: 1px; background: #D4913A; margin: 10px auto; opacity: .5; }
-  .body { background: #181610; border: 1px solid #2E2B22; border-radius: 12px; padding: 28px 24px; }
-  .body h2 { font-size: 18px; color: #F0E8D8; margin: 0 0 10px; }
-  .body p  { font-size: 14px; color: #BFB59E; line-height: 1.6; margin: 0 0 14px; }
-  table { width: 100%; border-collapse: collapse; margin: 14px 0; }
-  td { padding: 8px 10px; font-size: 14px; border-bottom: 1px solid #2E2B22; }
-  td:first-child { color: #7D7464; width: 38%; }
-  td:last-child  { color: #F0E8D8; font-weight: 500; }
-  .btn-green, .btn-red { display: inline-block; padding: 11px 24px; border-radius: 8px; text-decoration: none; font-size: 14px; font-weight: 500; margin: 4px 6px 4px 0; }
-  .btn-green { background: #3A9E6A; color: #fff; }
-  .btn-red   { background: #B84040; color: #fff; }
-  .btn-row   { margin: 16px 0 8px; }
-  .note { font-size: 12px; color: #7D7464; line-height: 1.6; margin: 10px 0 0; }
-  .footer { text-align: center; margin-top: 20px; font-size: 11px; color: #7D7464; }
-</style>
-</head>
-<body>
-<div class="wrapper">
-  <div class="header">
-    <h1>✂️ Tiago Barbearia</h1>
-    <div class="divider"></div>
-    <p>Agendamento Online</p>
-  </div>
-  <div class="body">
-    ${content}
-  </div>
-  <div class="footer">Tiago Barbearia &nbsp;|&nbsp; Responda ao e-mail em caso de dúvidas</div>
-</div>
-</body>
-</html>`;
+  return '<!DOCTYPE html>' +
+  '<html lang="pt-BR"><head><meta charset="UTF-8">' +
+  '<style>' +
+  'body{font-family:Arial,sans-serif;background:#f4f4f4;color:#333;margin:0;padding:0}' +
+  '.wrapper{max-width:560px;margin:0 auto;padding:32px 16px 48px}' +
+  '.header{background:#ffffff;border-radius:12px 12px 0 0;padding:28px 24px 20px;text-align:center;border-bottom:3px solid #D4913A}' +
+  '.header h1{font-size:22px;color:#1a1a1a;margin:0;letter-spacing:.04em}' +
+  '.header p{font-size:12px;color:#888;margin:5px 0 0;letter-spacing:.1em;text-transform:uppercase}' +
+  '.body{background:#ffffff;padding:28px 24px;border-radius:0 0 12px 12px;box-shadow:0 2px 8px rgba(0,0,0,.08)}' +
+  '.body h2{font-size:18px;color:#1a1a1a;margin:0 0 14px;border-left:3px solid #D4913A;padding-left:10px}' +
+  '.body p{font-size:14px;color:#555;line-height:1.6;margin:0 0 14px}' +
+  'table{width:100%;border-collapse:collapse;margin:14px 0}' +
+  'td{padding:10px 12px;font-size:14px;border-bottom:1px solid #f0f0f0}' +
+  'td:first-child{color:#888;width:38%;font-size:13px}' +
+  'td:last-child{color:#1a1a1a;font-weight:600}' +
+  '.btn-green,.btn-red{display:inline-block;padding:12px 24px;border-radius:8px;text-decoration:none;font-size:14px;font-weight:600;margin:4px 8px 4px 0}' +
+  '.btn-green{background:#2E9E60;color:#fff}' +
+  '.btn-red{background:#C0392B;color:#fff}' +
+  '.btn-row{margin:18px 0 10px}' +
+  '.note{font-size:12px;color:#999;line-height:1.6;margin:10px 0 0}' +
+  '.footer{text-align:center;margin-top:20px;font-size:11px;color:#aaa}' +
+  '</style></head><body>' +
+  '<div class="wrapper">' +
+  '<div class="header"><h1>Tiago Barbearia</h1><p>Agendamento Online</p></div>' +
+  '<div class="body">' + content + '</div>' +
+  '<div class="footer">Tiago Barbearia &nbsp;|&nbsp; Responda ao e-mail em caso de duvidas</div>' +
+  '</div></body></html>';
 }
 
 // ================================================================
@@ -674,31 +654,21 @@ function emailTemplate(content) {
 // ================================================================
 
 function paginaResultado(titulo, mensagem, tipo) {
-  const cores = { success: '#3A9E6A', error: '#B84040', warning: '#D4913A' };
-  const cor   = cores[tipo] || '#D4913A';
-  return `<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>${titulo} — Tiago Barbearia</title>
-<style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'Helvetica Neue', Arial, sans-serif; background: #0D0C09; color: #F0E8D8; display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 24px; }
-  .card { background: #181610; border: 1px solid #2E2B22; border-radius: 16px; padding: 36px 28px; max-width: 420px; width: 100%; text-align: center; }
-  .icon { font-size: 42px; margin-bottom: 14px; }
-  h1 { font-size: 20px; color: ${cor}; margin-bottom: 12px; }
-  p  { font-size: 14px; color: #BFB59E; line-height: 1.7; }
-  a  { display: inline-block; margin-top: 22px; background: #D4913A; color: #0D0C09; text-decoration: none; padding: 12px 28px; border-radius: 8px; font-weight: 500; font-size: 14px; }
-</style>
-</head>
-<body>
-<div class="card">
-  <div class="icon">${tipo === 'success' ? '✅' : tipo === 'error' ? '❌' : '⚠️'}</div>
-  <h1>${titulo}</h1>
-  <p>${mensagem}</p>
-  <a href="${CONFIG.urlFormulario}">Agendar novamente</a>
-</div>
-</body>
-</html>`;
+  const cor = tipo === 'success' ? '#2E9E60' : tipo === 'error' ? '#C0392B' : '#D4913A';
+  return '<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8">' +
+  '<meta name="viewport" content="width=device-width,initial-scale=1.0">' +
+  '<title>' + titulo + ' - Tiago Barbearia</title>' +
+  '<style>' +
+  '*{box-sizing:border-box;margin:0;padding:0}' +
+  'body{font-family:Arial,sans-serif;background:#f4f4f4;display:flex;align-items:center;justify-content:center;min-height:100vh;padding:24px}' +
+  '.card{background:#fff;border-top:4px solid ' + cor + ';border-radius:12px;padding:40px 32px;max-width:420px;width:100%;text-align:center;box-shadow:0 2px 12px rgba(0,0,0,.1)}' +
+  'h1{font-size:20px;color:#1a1a1a;margin-bottom:12px}' +
+  'p{font-size:14px;color:#555;line-height:1.7}' +
+  'a{display:inline-block;margin-top:24px;background:#D4913A;color:#fff;text-decoration:none;padding:12px 28px;border-radius:8px;font-weight:600;font-size:14px}' +
+  '</style></head><body>' +
+  '<div class="card">' +
+  '<h1>' + titulo + '</h1>' +
+  '<p>' + mensagem + '</p>' +
+  '<a href="' + CONFIG.urlFormulario + '">Agendar novamente</a>' +
+  '</div></body></html>';
 }
