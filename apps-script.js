@@ -8,23 +8,23 @@
 const CONFIG = {
 
   // ── E-mail do Tiago (recebe notificações e avisa o barbeiro) ──
-  emailBarbearia: 'tiago@seudominio.com.br',
+  emailBarbearia: 'tiagobarbearia.ofc@gmail.com',
 
   // ── Calendário do Tiago ────────────────────────────────────
   // Use o e-mail da conta Google do Tiago (ou o ID de um calendário específico)
-  calendarioId: 'tiago@seudominio.com.br',
+  calendarioId: 'tiagobarbearia.ofc@gmail.com',
 
   // ── URL pública deste Apps Script (gerada após publicar) ──
   // Apps Script > Implantar > Nova implantação > App da Web
-  urlScript: 'https://script.google.com/macros/s/SEU_ID_AQUI/exec',
+  urlScript: 'https://script.google.com/macros/s/AKfycbyVZABWd7ODGC8NObfMwPQNVFQWBOURGo7Ogc-6FoOvCIt6n7wpD1G4PmyUk6ZpDoji/exec',
 
   // ── URL do formulário (usada nos e-mails de cancelamento) ──
-  urlFormulario: 'https://seusite.com/tiago-barbearia.html',
+  urlFormulario: 'https://eduardopires127.github.io/tiago-barbearia/tiago-barbearia.html',
 
   // ── Planilha de registros ─────────────────────────────────
   // Crie uma planilha Google, copie o ID da URL e cole aqui
   // URL exemplo: docs.google.com/spreadsheets/d/SEU_ID_AQUI/edit
-  planilhaId: 'SEU_ID_DE_PLANILHA_AQUI',
+  planilhaId: '1Lee6J0Z2GEPQzkg-T_93pSND34utCldBZstDCO4zLFw',
 
   // ── Fuso horário ─────────────────────────────────────────
   timezone: 'America/Sao_Paulo',
