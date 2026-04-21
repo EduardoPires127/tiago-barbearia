@@ -8,11 +8,11 @@
 const CONFIG = {
 
   // ── E-mail do Tiago (recebe notificações e avisa o barbeiro) ──
-  emailBarbearia: 'tiagobarbearia.ofc@gmail.com',
+  emailBarbearia: 'tiagobarbeiro.ofc@gmail.com',
 
   // ── Calendário do Tiago ────────────────────────────────────
   // Use o e-mail da conta Google do Tiago (ou o ID de um calendário específico)
-  calendarioId: 'tiagobarbearia.ofc@gmail.com',
+  calendarioId: 'tiagobarbeiro.ofc@gmail.com',
 
   // ── URL pública deste Apps Script (gerada após publicar) ──
   // Apps Script > Implantar > Nova implantação > App da Web
@@ -230,7 +230,7 @@ function lembreteAutomatico() {
       </div>
       <p class="note">Caso não responda, seu agendamento permanece confirmado. Te esperamos! 💈</p>
     `);
-    GmailApp.sendEmail(email, '⏰ Lembrete: seu horário é em 2 horas — Tiago Barbearia', '', { htmlBody: htmlCliente });
+    GmailApp.sendEmail(email, '⏰ Lembrete: seu horário é em 2 horas — Tiago Barbearia', '', { charset: 'UTF-8', htmlBody: htmlCliente });
   });
 }
 
@@ -337,7 +337,7 @@ function enviarEmailConfirmacao(p, dataFmt, linkCancelar) {
     <a href="${linkCancelar}" class="btn-red">❌ Cancelar agendamento</a>
     <p class="note" style="margin-top:8px;font-size:11px;color:#888;word-break:break-all">${linkCancelar}</p>
   `);
-  GmailApp.sendEmail(p.email, '✅ Agendamento confirmado — Tiago Barbearia', '', { htmlBody: htmlCliente });
+  GmailApp.sendEmail(p.email, '✅ Agendamento confirmado — Tiago Barbearia', '', { charset: 'UTF-8', htmlBody: htmlCliente });
 
   // Notificação para o Tiago
   const telLimpo   = p.tel.replace(/\D/g, '');
@@ -356,7 +356,7 @@ function enviarEmailConfirmacao(p, dataFmt, linkCancelar) {
     <p>O horário foi registrado no calendário automaticamente.</p>
     <a href="${linkCancelar}" class="btn-red">❌ Cancelar este agendamento</a>
   `);
-  GmailApp.sendEmail(CONFIG.emailBarbearia, `📅 Novo agendamento: ${p.nome} — ${dataFmt} às ${p.time}`, '', { htmlBody: htmlTiago });
+  GmailApp.sendEmail(CONFIG.emailBarbearia, `📅 Novo agendamento: ${p.nome} — ${dataFmt} às ${p.time}`, '', { charset: 'UTF-8', htmlBody: htmlTiago });
 }
 
 function enviarEmailCancelamento(d) {
@@ -374,7 +374,7 @@ function enviarEmailCancelamento(d) {
       <a href="${CONFIG.urlFormulario}" class="btn-green">📅 Reagendar agora</a>
       <p class="note">Esperamos te ver em breve! 💈</p>
     `);
-    GmailApp.sendEmail(d.email, '❌ Agendamento cancelado — Tiago Barbearia', '', { htmlBody: htmlCliente });
+    GmailApp.sendEmail(d.email, '❌ Agendamento cancelado — Tiago Barbearia', '', { charset: 'UTF-8', htmlBody: htmlCliente });
   }
 
   // Notificação para o Tiago
@@ -391,7 +391,7 @@ function enviarEmailCancelamento(d) {
     </table>
     <p>O horário foi liberado automaticamente no calendário.</p>
   `);
-  GmailApp.sendEmail(CONFIG.emailBarbearia, `❌ Cancelamento: ${d.nome} — ${d.data} às ${d.horario}`, '', { htmlBody: htmlTiago });
+  GmailApp.sendEmail(CONFIG.emailBarbearia, `❌ Cancelamento: ${d.nome} — ${d.data} às ${d.horario}`, '', { charset: 'UTF-8', htmlBody: htmlTiago });
 }
 
 // ================================================================
