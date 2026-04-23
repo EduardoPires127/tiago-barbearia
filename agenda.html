@@ -498,6 +498,21 @@ body {
   font-weight: 500;
 }
 
+.btn-del-appt {
+  background: transparent;
+  border: none;
+  color: #ccc;
+  font-size: 16px;
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: 6px;
+  line-height: 1;
+  flex-shrink: 0;
+  align-self: center;
+  transition: color .2s, background .2s;
+}
+.btn-del-appt:hover { color: #CC3333; background: #FFF0F0; }
+
 /* Estado vazio */
 .panel-empty {
   text-align: center;
@@ -1582,7 +1597,9 @@ function renderPanel(dateStr) {
           <div class="appt-servico">${a.servicos || '—'}</div>
           ${a.valor ? `<div class="appt-valor">${a.valor}</div>` : ''}
         </div>
+        <button class="btn-del-appt" title="Excluir agendamento">🗑️</button>
       `;
+      card.querySelector('.btn-del-appt').addEventListener('click', () => deleteAppt(a, card, dateStr));
       body.appendChild(card);
     });
   }
@@ -1615,6 +1632,42 @@ function renderPanel(dateStr) {
     btnRemExc.textContent = '↩️ Desfazer exceção (fechar novamente)';
     btnRemExc.addEventListener('click', () => desfazerExcecao(dateStr));
     body.appendChild(btnRemExc);
+  }
+}
+
+// ================================================================
+//  EXCLUIR AGENDAMENTO
+// ================================================================
+async function deleteAppt(appt, cardEl, dateStr) {
+  if (!confirm(`Excluir agendamento de ${appt.nome} às ${appt.horario}?`)) return;
+
+  cardEl.style.opacity = '0.4';
+  cardEl.style.pointerEvents = 'none';
+
+  try {
+    const resp = await fetch(CONFIG.scriptUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'deleteEvent', eventId: appt.id }),
+    });
+    const data = await resp.json();
+    if (data.status === 'ok') {
+      // Remove do cache local
+      if (STATE.agendaMap[dateStr]) {
+        STATE.agendaMap[dateStr] = STATE.agendaMap[dateStr].filter(a => a.id !== appt.id);
+      }
+      renderCalendar();
+      renderPanel(dateStr);
+      showToast('Agendamento excluído');
+    } else {
+      cardEl.style.opacity = '';
+      cardEl.style.pointerEvents = '';
+      showToast('Erro: ' + (data.message || 'falha ao excluir'));
+    }
+  } catch(e) {
+    cardEl.style.opacity = '';
+    cardEl.style.pointerEvents = '';
+    showToast('Erro de conexão');
   }
 }
 

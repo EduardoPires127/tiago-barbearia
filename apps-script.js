@@ -71,6 +71,7 @@ function doGet(e) {
   }
 
   if (p.action === 'getAgenda') return getAgenda(p.timeMin, p.timeMax);
+  if (p.action === 'deleteEvent' && p.eventId) return deleteEvent(p.eventId);
   if (p.action === 'getHorarios') return getHorarios();
 
   // Formulário criando agendamento via GET (contorna CORS redirect do POST)
@@ -506,6 +507,7 @@ function getAgenda(timeMin, timeMax) {
       const desc  = ev.getDescription() || '';
       const token = desc.includes('TOKEN:') ? extrairDado(desc, 'TOKEN') : '';
       return {
+        id:       ev.getId(),
         data:     Utilities.formatDate(ev.getStartTime(), CONFIG.timezone, 'yyyy-MM-dd'),
         horario:  Utilities.formatDate(ev.getStartTime(), CONFIG.timezone, 'HH:mm'),
         horFim:   Utilities.formatDate(ev.getEndTime(),   CONFIG.timezone, 'HH:mm'),
@@ -517,6 +519,19 @@ function getAgenda(timeMin, timeMax) {
     });
     result.sort((a,b) => a.horario.localeCompare(b.horario));
     return jsonResp({ status: 'ok', events: result });
+  } catch(err) {
+    return jsonResp({ status: 'error', message: err.toString() });
+  }
+}
+
+// deleteEvent — exclui evento pelo ID
+function deleteEvent(eventId) {
+  try {
+    const cal = getCalendar();
+    const ev  = cal.getEventById(eventId);
+    if (!ev) return jsonResp({ status: 'error', message: 'Evento não encontrado' });
+    ev.deleteEvent();
+    return jsonResp({ status: 'ok' });
   } catch(err) {
     return jsonResp({ status: 'error', message: err.toString() });
   }
