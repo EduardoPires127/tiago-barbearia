@@ -908,6 +908,8 @@ async function cancelarExecutar(ag) {
 
 function resetar() {
   Object.assign(B, { nome:'', servicos:[], data:null, dataStr:'', horario:'', telefone:'', email:'', duracao:0, preco:0 });
+  const label = new Date().toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'long'});
+  chat.innerHTML = `<div class="date-label" id="todayLabel">${label}</div>`;
   start();
 }
 
