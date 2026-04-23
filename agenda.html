@@ -1645,11 +1645,8 @@ async function deleteAppt(appt, cardEl, dateStr) {
   cardEl.style.pointerEvents = 'none';
 
   try {
-    const resp = await fetch(CONFIG.scriptUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'deleteEvent', eventId: appt.id }),
-    });
+    const url  = `${CONFIG.scriptUrl}?action=deleteEvent&eventId=${encodeURIComponent(appt.id)}`;
+    const resp = await fetch(url);
     const data = await resp.json();
     if (data.status === 'ok') {
       // Remove do cache local
